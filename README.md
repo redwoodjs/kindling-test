@@ -1,6 +1,6 @@
 # kindling-test
 
-A test repository for [kindling](https://github.com/redwoodjs), an automated agent orchestration system developed by the RedwoodJS team.
+A test repository for kindling, an automated agent orchestration system developed by the RedwoodJS team.
 
 ## What this is
 
