@@ -1,6 +1,6 @@
 # kindling-test
 
-Sandbox repository for testing and developing [kindling](https://github.com/redwoodjs/kindling) — the AI task force automation tool used within the RedwoodJS project.
+Sandbox repository for testing and developing [kindling](https://github.com/justinvdm/kindling) — the AI task force automation tool used within the RedwoodJS project.
 
 ## Purpose
 
@@ -8,13 +8,15 @@ This repo serves as a controlled environment for exercising kindling workflows. 
 
 ## Usage
 
-Tasks are dispatched via kindling. The devcontainer configuration for kindling lives at `.devcontainer/kindling/` (not tracked — see `.gitignore`).
+Tasks are dispatched via the kindling CLI. Configuration at `.devcontainer/kindling/` is excluded from version control (see `.gitignore`).
 
 To launch a kindling task against this repo:
 
 ```bash
-kindling launch <task-description>
+kindling launch "Describe the task here"
 ```
+
+See `kindling docs quickstart` for the full getting-started guide.
 
 ## Notes
 
