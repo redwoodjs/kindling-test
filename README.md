@@ -1,10 +1,10 @@
 # kindling-test
 
-A sandbox repository for testing [kindling](https://github.com/redwoodjs/kindling), the AI-powered task automation tool for the RedwoodJS ecosystem.
+Our sandbox repository for testing [kindling](https://github.com/redwoodjs/kindling), the AI-powered task automation tool for the RedwoodJS ecosystem.
 
 ## Overview
 
-This repository serves as a test environment for kindling — an orchestrator-driven agent system that coordinates task forces of specialized AI agents to execute development tasks. Use it to experiment with kindling workflows, validate agent behavior, and explore what the tooling can do.
+We use this repository as a test environment for kindling — an orchestrator-driven agent system that coordinates task forces of specialized AI agents to execute development tasks. We experiment with kindling workflows here, validate agent behavior, and explore what the tooling can do.
 
 ## Setup
 
@@ -20,20 +20,20 @@ kindling --version
 
 ## Usage
 
-Run a task by piping a worklog or directive to kindling:
+We run a task by piping a worklog or directive to kindling:
 
 ```bash
 cat .notes/worklogs/my-task.md | kindling launch -
 ```
 
-Or describe a task inline:
+Or we describe a task inline:
 
 ```bash
 kindling launch "describe what you want done here"
 ```
 
-Refer to the kindling documentation for full usage, agent configuration, and task force setup.
+We refer to the kindling documentation for full usage, agent configuration, and task force setup.
 
 ## Contributing
 
-This is a test repository — contributions are typically informal experiments. If you are adding a reproducible test case or fixture, keep it scoped and document what it is testing in a comment or commit message.
+This is our test repository — contributions are typically informal experiments. When we add a reproducible test case or fixture, we keep it scoped and document what it is testing in a comment or commit message.
