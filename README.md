@@ -1,4 +1,4 @@
-# repo
+# TODO: Project Name (kindling-integrated)
 
 > TODO: Replace this section with a description of what this project is and why it exists.
 
@@ -18,10 +18,10 @@ Clone the repository and open it in the devcontainer:
 
 ```bash
 git clone <repository-url>
-cd repo
+cd <repository>
 ```
 
-Open in VS Code and select **Reopen in Container** when prompted, or run:
+This project uses a kindling-managed devcontainer (`.devcontainer/kindling/` is gitignored, meaning the kindling harness provisions the container environment). Open in VS Code and select **Reopen in Container** when prompted, or run:
 
 ```bash
 code .
