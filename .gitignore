@@ -1,1 +1,6 @@
 .devcontainer/kindling/
+node_modules/
+dist/
+*.log
+.env
+.DS_Store
