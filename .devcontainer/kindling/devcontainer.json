@@ -1,0 +1,20 @@
+{
+  "name": "Kindling (Agent-Ready)",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22"
+    },
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "./kindling-agent-ready": {}
+  },
+  "postCreateCommand": "sudo env \"PATH=$PATH\" npm install -g tsx @openai/codex",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  }
+}
