@@ -22,13 +22,20 @@ The existing middleware pattern in `src/app/headers.ts` demonstrates how to acce
 
 **Handler Approach**: Create a dedicated handler function that returns a Response with content-type `text/plain` and body "hello world".
 
-**Route Definition**: Add a new route to the `render()` call in `src/worker.tsx` that maps `/greeting` to the greeting handler.
+**Route Definition**: Add a new route directly in the `defineApp` array, **before** the `render()` call. The `render()` wrapper is for React-rendered pages (SSR inside the Document component). Since `/greeting` returns plain text, it must be placed outside that wrapper:
+```typescript
+const app = defineApp([
+  setCommonHeaders(),
+  route("/greeting", greetingHandler),
+  render(Document, [route("/", () => import("./app/pages/Home"))]),
+]);
+```
 
 ### Implementation Breakdown
 
 1. **[NEW] Create handler function**: `src/app/handlers/greeting.ts` exports a handler that returns a Response with status 200, content-type "text/plain", and body "hello world"
 
-2. **[MODIFY] src/worker.tsx**: Import the greeting handler and add a new route to the render() call. The route will match `/greeting` and use the greeting handler.
+2. **[MODIFY] src/worker.tsx**: Import the greeting handler and add a new route to the `defineApp` array, **before** (outside) the `render()` call. The route will match `/greeting` and use the greeting handler. The placement ensures the plain text Response is returned directly, not wrapped in the Document component.
 
 ### Response Format & Behavior Spec
 
