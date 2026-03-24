@@ -4,12 +4,15 @@ import { cloudflare } from "@cloudflare/vite-plugin";
 
 export default defineConfig({
   plugins: [
-    cloudflare({
-      viteEnvironment: { name: "worker" },
-    }),
+    {
+      ...cloudflare({
+        viteEnvironment: { name: "worker" },
+      }),
+      apply: "build",
+    },
     redwood(),
   ],
   test: {
-    environment: "node",
+    environment: "jsdom",
   },
 });
