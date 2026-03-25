@@ -109,3 +109,84 @@ Scenario: The greeting endpoint responds promptly
 3. Content-type expectation: "text/plain" is most likely, but "text/plain; charset=utf-8" would also be acceptable.
 4. HTTP 405 Method Not Allowed is preferred for unsupported methods, but any non-success code is acceptable for POST/DELETE (the key is that they should not return 200).
 5. All specs are independently verifiable using standard HTTP clients (curl, fetch, etc.).
+
+## Test Writing (QA, Track B Phase 2)
+
+### Approach
+
+Tests are written as a standalone, framework-agnostic script (`greeting.test.mjs`) using Node's built-in `fetch` API. This approach:
+- Requires no additional dependencies beyond Node
+- Allows tests to run against a live server (dev or production)
+- Verifies external HTTP behavior only (black-box principle)
+- Can be integrated with any test framework later (Vitest, Jest, etc.)
+
+### Test Coverage
+
+Written 28 concrete test cases covering all 8 behavioral specs:
+
+**Spec 1** (Successful Response): 3 tests
+- Status code 200
+- Body content "hello world"
+- Content-Type header text/plain
+
+**Spec 2** (Consistency): 1 test
+- Multiple consecutive requests return identical responses
+
+**Spec 3** (Path Specificity): 3 tests
+- /greeting returns greeting
+- /greet does not return greeting
+- /hello does not return greeting
+
+**Spec 4** (HTTP Methods): 5 tests
+- GET returns 200
+- HEAD returns 200 or non-200 (acceptable)
+- POST returns non-200
+- DELETE returns non-200
+- PUT returns non-200
+
+**Spec 5** (Content-Type): 2 tests
+- Header is present
+- Header matches text/plain pattern
+
+**Spec 6** (Request Body): 2 tests
+- GET without body returns greeting
+- GET with body still returns greeting
+
+**Spec 7** (Query Parameters): 3 tests
+- No query parameters
+- Single query parameter (foo=bar)
+- Multiple query parameters
+
+**Spec 8** (Timing): 1 test
+- Response time < 1 second
+
+### Test Location and Usage
+
+**File**: `greeting.test.mjs` (project root)
+
+**Running tests**:
+```
+# In one terminal: start dev server
+npm run dev
+
+# In another terminal: run tests
+node greeting.test.mjs
+```
+
+**With custom server URL**:
+```
+TEST_BASE_URL=http://localhost:3000 node greeting.test.mjs
+```
+
+### Test Framework Independence
+
+No test framework is currently installed in the project. Tests are written in plain JavaScript for maximum compatibility. Future integration with Vitest/Jest would be straightforward — the test logic is framework-agnostic and can be wrapped in `describe()` and `it()` blocks as needed.
+
+### Black-Box Verification
+
+All tests:
+- Make real HTTP requests to the running server
+- Assert only on observable response properties (status, headers, body)
+- Do not inspect implementation details
+- Do not assume any framework or internal structure
+- Are verifiable manually with `curl`, `fetch`, or any HTTP client
