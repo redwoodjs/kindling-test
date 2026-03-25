@@ -13,5 +13,13 @@ export default defineApp([
     // setup ctx here
     ctx;
   },
+  route("/api/greeting", () => {
+    return new Response("Hello from kindling test", {
+      status: 200,
+      headers: {
+        "Content-Type": "text/plain",
+      },
+    });
+  }),
   render(Document, [route("/", Home)]),
 ]);
