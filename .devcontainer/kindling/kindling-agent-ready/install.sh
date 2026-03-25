@@ -11,8 +11,8 @@ if ! command -v node &>/dev/null; then
 fi
 
 # tsx is the runtime for kindling (shebang-based, no build step).
-# Codex is installed alongside it so provider selection works inside containers.
-npm install -g tsx @openai/codex
+# Codex and Cline are installed alongside it so provider selection works inside containers.
+npm install -g tsx @openai/codex cline
 
 # Install GitHub Copilot CLI for the copilot provider.
 curl -fsSL https://gh.io/copilot-install | bash
