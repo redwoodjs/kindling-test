@@ -9,4 +9,8 @@ export default defineConfig({
     }),
     redwood(),
   ],
+  test: {
+    globals: true,
+    environment: "node",
+  },
 });
