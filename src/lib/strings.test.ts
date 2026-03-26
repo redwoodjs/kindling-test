@@ -71,4 +71,8 @@ describe("capitalize", () => {
   it("returns a string starting with an uppercase Unicode letter unchanged", () => {
     assert.strictEqual(capitalize("Über"), "Über")
   })
+
+  it("returns an all-uppercase word unchanged", () => {
+    assert.strictEqual(capitalize("HELLO"), "HELLO")
+  })
 })
