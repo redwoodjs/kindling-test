@@ -1,0 +1,71 @@
+name: Windows Tunnel
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Git ref to checkout (branch, tag, SHA)"
+        required: false
+        default: "main"
+      timeout-minutes:
+        description: "Max session duration in minutes (default: 120)"
+        required: false
+        default: "120"
+
+jobs:
+  tunnel:
+    runs-on: windows-latest
+    timeout-minutes: ${{ fromJSON(inputs.timeout-minutes || '120') }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          corepack enable
+          pnpm install
+
+      - name: Start tmate session
+        id: tmate
+        uses: mxschmitt/action-tmate@v3
+        with:
+          detached: true
+          limit-access-to-actor: true
+
+      - name: Write connection info
+        shell: bash
+        run: |
+          echo "::notice::SSH command: ${{ steps.tmate.outputs.ssh }}"
+          mkdir -p /tmp/tunnel-info
+          echo "${{ steps.tmate.outputs.ssh }}" > /tmp/tunnel-info/ssh-command.txt
+
+      - name: Upload connection info
+        uses: actions/upload-artifact@v4
+        with:
+          name: tunnel-info
+          path: /tmp/tunnel-info/ssh-command.txt
+          retention-days: 1
+
+      - name: Hold runner alive
+        shell: bash
+        run: |
+          echo "Tunnel is active. Waiting for session to end or timeout..."
+          echo "To end early, SSH in and run: touch /tmp/keepalive-stop"
+          while true; do
+            if [ -f /tmp/keepalive-stop ]; then
+              echo "Stop signal received, shutting down."
+              break
+            fi
+            sleep 30
+          done
