@@ -12,11 +12,11 @@ describe("math", () => {
   })
 
   it("subtracts two numbers", () => {
-    assert.strictEqual(subtract(3, 2), 2)
+    assert.strictEqual(subtract(3, 2), 1)
   })
 
   it("multiplies two numbers", () => {
-    assert.strictEqual(multiply(2, 3), 8)
+    assert.strictEqual(multiply(2, 3), 6)
   })
 
   it("multiplies by zero", () => {
