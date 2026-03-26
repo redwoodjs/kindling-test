@@ -14,6 +14,8 @@
     "dev:init": "rw-scripts dev-init",
     "preview": "vite preview",
     "worker:run": "rw-scripts worker-run",
+    "test": "vitest",
+    "test:run": "vitest run",
     "clean": "npm run clean:vite",
     "clean:vite": "rm -rf ./node_modules/.vite",
     "release": "rw-scripts ensure-deploy-env && npm run clean && npm run build && wrangler deploy",
@@ -33,8 +35,10 @@
     "@types/node": "~25.3.5",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
+    "@vitest/ui": "^4.1.1",
     "typescript": "5.9.3",
     "vite": "7.3.1",
+    "vitest": "^4.1.1",
     "wrangler": "4.71.0"
   },
   "pnpm": {
