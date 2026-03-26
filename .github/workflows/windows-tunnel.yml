@@ -36,29 +36,66 @@ jobs:
           corepack enable
           pnpm install
 
-      - name: Start tmate session
-        id: tmate
-        uses: mxschmitt/action-tmate@v3
-        with:
-          detached: true
-          limit-access-to-actor: true
-
-      - name: Write connection info
-        shell: bash
+      - name: Install tmate
+        shell: C:\msys64\usr\bin\bash.exe --noprofile --norc -e -o pipefail {0}
         run: |
-          echo "::notice::SSH command: ${{ steps.tmate.outputs.ssh }}"
-          mkdir -p /tmp/tunnel-info
-          echo "${{ steps.tmate.outputs.ssh }}" > /tmp/tunnel-info/ssh-command.txt
+          pacman -S --noconfirm tmate
 
-      - name: Upload connection info
-        uses: actions/upload-artifact@v4
-        with:
-          name: tunnel-info
-          path: /tmp/tunnel-info/ssh-command.txt
-          retention-days: 1
+      - name: Configure SSH access
+        shell: C:\msys64\usr\bin\bash.exe --noprofile --norc -e -o pipefail {0}
+        run: |
+          # context(justinvdm, 2026-03-26): Fetch the triggering user's SSH keys
+          # from GitHub and write them to authorized_keys so tmate restricts access.
+          mkdir -p ~/.ssh
+          curl -sL "https://github.com/${{ github.actor }}.keys" > ~/.ssh/authorized_keys
+          chmod 600 ~/.ssh/authorized_keys
+          echo "Authorized SSH keys for ${{ github.actor }}:"
+          cat ~/.ssh/authorized_keys
+
+      - name: Start tmate and publish SSH address
+        shell: C:\msys64\usr\bin\bash.exe --noprofile --norc -e -o pipefail {0}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # context(justinvdm, 2026-03-26): Start tmate in daemon mode, poll its
+          # socket for the SSH address, then publish it as a commit status on HEAD.
+          # Commit statuses are readable via the GitHub API while the run is still
+          # in progress -- unlike artifacts, step logs, or job summaries.
+
+          TMATE_SOCK="/tmp/tmate.sock"
+
+          # Start tmate in daemon mode (creates socket, detaches)
+          tmate -S "$TMATE_SOCK" new-session -d
+
+          # Poll for the SSH connection string (tmate needs a few seconds to register)
+          SSH_CMD=""
+          for i in $(seq 1 30); do
+            SSH_CMD=$(tmate -S "$TMATE_SOCK" display -p '#{tmate_ssh}' 2>/dev/null || true)
+            if [ -n "$SSH_CMD" ]; then
+              break
+            fi
+            sleep 2
+          done
+
+          if [ -z "$SSH_CMD" ]; then
+            echo "::error::Failed to get tmate SSH address after 60 seconds"
+            exit 1
+          fi
+
+          echo "SSH address: $SSH_CMD"
+
+          # Publish as a commit status (readable via API while run is in progress)
+          HEAD_SHA=$(git rev-parse HEAD)
+          gh api "repos/${{ github.repository }}/statuses/${HEAD_SHA}" \
+            -f state=success \
+            -f description="${SSH_CMD}" \
+            -f context="windows-tunnel" \
+            -f target_url="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          echo "Published SSH address as commit status on ${HEAD_SHA}"
 
       - name: Hold runner alive
-        shell: bash
+        shell: C:\msys64\usr\bin\bash.exe --noprofile --norc -e -o pipefail {0}
         run: |
           echo "Tunnel is active. Waiting for session to end or timeout..."
           echo "To end early, SSH in and run: touch /tmp/keepalive-stop"
