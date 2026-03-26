@@ -36,13 +36,8 @@ jobs:
           corepack enable
           pnpm install
 
-      - name: Install tmate
-        shell: C:\msys64\usr\bin\bash.exe --noprofile --norc -e -o pipefail {0}
-        run: |
-          pacman -S --noconfirm tmate
-
       - name: Configure SSH access
-        shell: C:\msys64\usr\bin\bash.exe --noprofile --norc -e -o pipefail {0}
+        shell: bash
         run: |
           # context(justinvdm, 2026-03-26): Fetch the triggering user's SSH keys
           # from GitHub and write them to authorized_keys so tmate restricts access.
@@ -52,41 +47,56 @@ jobs:
           echo "Authorized SSH keys for ${{ github.actor }}:"
           cat ~/.ssh/authorized_keys
 
-      - name: Start tmate and publish SSH address
+      - name: Start tmate session
+        id: tmate
+        uses: mxschmitt/action-tmate@v3
+        with:
+          detached: true
+          limit-access-to-actor: true
+
+      - name: Publish SSH address
         shell: C:\msys64\usr\bin\bash.exe --noprofile --norc -e -o pipefail {0}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # context(justinvdm, 2026-03-26): Start tmate in daemon mode, poll its
-          # socket for the SSH address, then publish it as a commit status on HEAD.
-          # Commit statuses are readable via the GitHub API while the run is still
-          # in progress -- unlike artifacts, step logs, or job summaries.
+          # context(justinvdm, 2026-03-26): The tmate action with detached: true
+          # doesn't populate step outputs on Windows. Read the SSH address from
+          # tmate's socket instead, then publish as a commit status (readable via
+          # GitHub API while the run is still in progress).
 
-          TMATE_SOCK="/tmp/tmate.sock"
+          export PATH="/usr/bin:/c/msys64/usr/bin:$PATH"
+          TMATE_SOCK="/tmp/tmate-$(id -u)/default"
 
-          # Start tmate in daemon mode (creates socket, detaches)
-          tmate -S "$TMATE_SOCK" new-session -d
-
-          # Poll for the SSH connection string (tmate needs a few seconds to register)
+          # Poll for the SSH connection string
           SSH_CMD=""
           for i in $(seq 1 30); do
-            SSH_CMD=$(tmate -S "$TMATE_SOCK" display -p '#{tmate_ssh}' 2>/dev/null || true)
-            if [ -n "$SSH_CMD" ]; then
-              break
-            fi
+            # Try multiple possible socket locations
+            for SOCK in "/tmp/tmate-$(id -u)/default" "/tmp/tmate.sock"; do
+              if [ -S "$SOCK" ]; then
+                SSH_CMD=$(tmate -S "$SOCK" display -p '#{tmate_ssh}' 2>/dev/null || true)
+                if [ -n "$SSH_CMD" ]; then
+                  break 2
+                fi
+              fi
+            done
             sleep 2
           done
 
           if [ -z "$SSH_CMD" ]; then
-            echo "::error::Failed to get tmate SSH address after 60 seconds"
+            echo "::warning::Could not read SSH from tmate socket. Checking step outputs..."
+            SSH_CMD="${{ steps.tmate.outputs.ssh }}"
+          fi
+
+          if [ -z "$SSH_CMD" ]; then
+            echo "::error::Failed to get tmate SSH address"
             exit 1
           fi
 
           echo "SSH address: $SSH_CMD"
 
-          # Publish as a commit status (readable via API while run is in progress)
+          # Publish as a commit status
           HEAD_SHA=$(git rev-parse HEAD)
-          gh api "repos/${{ github.repository }}/statuses/${HEAD_SHA}" \
+          /c/Program\ Files/GitHub\ CLI/gh.exe api "repos/${{ github.repository }}/statuses/${HEAD_SHA}" \
             -f state=success \
             -f description="${SSH_CMD}" \
             -f context="windows-tunnel" \
@@ -95,7 +105,7 @@ jobs:
           echo "Published SSH address as commit status on ${HEAD_SHA}"
 
       - name: Hold runner alive
-        shell: C:\msys64\usr\bin\bash.exe --noprofile --norc -e -o pipefail {0}
+        shell: bash
         run: |
           echo "Tunnel is active. Waiting for session to end or timeout..."
           echo "To end early, SSH in and run: touch /tmp/keepalive-stop"
