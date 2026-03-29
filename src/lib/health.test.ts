@@ -56,4 +56,14 @@ describe("healthHandler", () => {
     assert.strictEqual(bodyShort.healthy, true)
     assert.strictEqual(bodyLong.healthy, true)
   })
+
+  it("response sets a JSON content-type header", () => {
+    const handler = createHealthHandler(() => 0)
+    const response = handler()
+    const contentType = response.headers.get("content-type") ?? ""
+    assert.ok(
+      contentType.includes("application/json"),
+      `Expected content-type to include application/json, got: ${contentType}`,
+    )
+  })
 })
