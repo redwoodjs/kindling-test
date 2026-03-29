@@ -8,7 +8,7 @@
 
 ## 2000ft View Narrative
 
-The project needs a lightweight `/status` endpoint that answers "is the server alive and what version is it?" in a machine-readable way. The response carries three fields: the current server time (UTC ISO 8601), the server uptime in whole seconds, and the application version string sourced from `package.json`.
+The project needs a lightweight `/status` endpoint that answers "is the server alive and what version is it?" in a machine-readable way. The response carries five fields: a `status` sentinel (always `"ok"`), a per-request UUID (`requestId`) for correlation/tracing, the current server time (UTC ISO 8601), the server uptime in whole seconds, and the application version string sourced from `package.json`.
 
 The codebase runs as a Cloudflare Worker under the RedwoodSDK framework (`rwsdk` v1.0.4). Routes are registered via `route(path, handler | methodHandlers)` in `defineApp([...])` inside `src/worker.tsx`. A handler can return either a React Server Component or a plain `Response` object — the latter is used here since `/status` is a JSON API endpoint, not a rendered page.
 
@@ -46,9 +46,16 @@ Feature: GET /status
     Given the server is running
     When I send GET /status
     Then the response body is valid JSON
+    And the body contains a field "status" that equals "ok"
+    And the body contains a field "requestId" that is a valid UUID v4 string
     And the body contains a field "time" that is a string
     And the body contains a field "uptime" that is a non-negative number
     And the body contains a field "version" that is a non-empty string
+
+  Scenario: "requestId" is unique per request
+    Given the server is running
+    When I send GET /status twice in sequence
+    Then each response has a distinct "requestId" value
 
   Scenario: "time" is a valid ISO 8601 UTC timestamp
     Given the server is running
@@ -74,7 +81,7 @@ Feature: GET /status
   Scenario: Response body contains no extra undocumented fields
     Given the server is running
     When I send GET /status
-    Then the response body has exactly the fields: "time", "uptime", "version"
+    Then the response body has exactly the fields: "status", "requestId", "time", "uptime", "version"
 ```
 
 ---
@@ -84,9 +91,11 @@ Feature: GET /status
 ```typescript
 // Response payload shape
 interface StatusResponse {
-  time: string;    // ISO 8601 UTC — e.g. "2026-03-29T12:00:00.000Z"
-  uptime: number;  // Whole seconds since module cold-start (Math.floor)
-  version: string; // Semver string from package.json — e.g. "1.0.0"
+  status: string;    // Always "ok"
+  requestId: string; // UUID v4 generated fresh on each request via crypto.randomUUID()
+  time: string;      // ISO 8601 UTC — e.g. "2026-03-29T12:00:00.000Z"
+  uptime: number;    // Whole seconds since module cold-start (Math.floor)
+  version: string;   // Semver string from package.json — e.g. "1.0.0"
 }
 ```
 

@@ -32,14 +32,37 @@ describe("GET /status", () => {
     )
   })
 
-  it("response body contains exactly the keys: status, time, uptime, version", async () => {
+  it("response body contains exactly the keys: requestId, status, time, uptime, version", async () => {
     const res = statusHandler.get()
     const body = (await res.json()) as Record<string, unknown>
     const keys = Object.keys(body).sort()
     assert.deepStrictEqual(
       keys,
-      ["status", "time", "uptime", "version"],
-      `Expected exactly ["status", "time", "uptime", "version"], got ${JSON.stringify(keys)}`,
+      ["requestId", "status", "time", "uptime", "version"],
+      `Expected exactly ["requestId", "status", "time", "uptime", "version"], got ${JSON.stringify(keys)}`,
+    )
+  })
+
+  it("requestId is a valid UUID v4 string", async () => {
+    const res = statusHandler.get()
+    const body = (await res.json()) as Record<string, unknown>
+    assert.strictEqual(typeof body.requestId, "string", "requestId must be a string")
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    assert.ok(
+      uuidRegex.test(body.requestId as string),
+      `requestId "${body.requestId}" must be a valid UUID v4`,
+    )
+  })
+
+  it("requestId is unique per request", async () => {
+    const res1 = statusHandler.get()
+    const res2 = statusHandler.get()
+    const body1 = (await res1.json()) as Record<string, unknown>
+    const body2 = (await res2.json()) as Record<string, unknown>
+    assert.notStrictEqual(
+      body1.requestId,
+      body2.requestId,
+      "requestId must be unique per request",
     )
   })
 

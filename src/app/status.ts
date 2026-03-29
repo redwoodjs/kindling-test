@@ -7,6 +7,7 @@ export const statusHandler = {
   get: () => {
     const time = new Date().toISOString();
     const uptime = Math.floor((Date.now() - START_TIME) / 1000);
-    return Response.json({ status: "ok", time, uptime, version: VERSION });
+    const requestId = crypto.randomUUID();
+    return Response.json({ status: "ok", requestId, time, uptime, version: VERSION });
   },
 };
