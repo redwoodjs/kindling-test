@@ -1,7 +1,7 @@
 # RFC: Add `/health` Endpoint
 
 **Date**: 2026-03-29
-**Status**: Draft
+**Status**: Implemented
 
 ---
 
@@ -20,11 +20,11 @@ The endpoint has no authentication, no side effects, and no database access. It 
 A pure TypeScript module (not a React component) that exports:
 
 - A `HealthResponse` type describing the response shape
-- A `createHealthHandler(getUptimeMs)` factory function that accepts an injectable uptime provider and returns a `RouteMiddleware`-compatible handler
-- A module-level `startTime` constant and `defaultGetUptimeMs` function
-- A `healthHandler` export: `createHealthHandler()` using the default uptime function — this is what gets registered as the route handler
+- A `START_TIME` object (`{ value: Date.now() }`) holding the module initialization timestamp; exported as a mutable object property so tests can override `START_TIME.value` without monkey-patching globals
+- A `createHealthHandler(getUptimeMs, thresholdMs)` factory that accepts an injectable uptime provider and an optional threshold in milliseconds (default: `DEFAULT_THRESHOLD_MS` = 24 h); returns a `RouteMiddleware`-compatible handler
+- A `healthHandler` export: `createHealthHandler()` using the real clock and default threshold — this is what gets registered as the route handler
 
-The factory pattern enables full uptime mock-ability in tests without monkey-patching globals.
+The factory parameters enable full uptime and threshold control in tests without monkey-patching globals.
 
 ### `[MODIFY]` `src/worker.tsx`
 
@@ -96,7 +96,7 @@ The `warning` string is a literal type — callers can use `"warning" in respons
 
 ## Invariants & Constraints
 
-1. **Uptime measurement**: The `startTime` constant is captured via `Date.now()` at module initialization time. This correctly tracks how long the current Worker instance has been alive, which is the meaningful notion of "server uptime" in a Cloudflare Workers environment.
+1. **Uptime measurement**: `START_TIME.value` is set to `Date.now()` at module initialization time. This correctly tracks how long the current Worker instance has been alive, which is the meaningful notion of "server uptime" in a Cloudflare Workers environment. The mutable object form (rather than a plain `const`) allows tests to override it; see `.docs/learnings/testable-time-dependent-handlers.md`.
 
 2. **Threshold is strictly greater than 24 hours**: `uptimeMs > 24 * 60 * 60 * 1000`. Exactly 24 hours does NOT trigger the warning (consistent with "exceeds").
 
@@ -113,11 +113,13 @@ The `warning` string is a literal type — callers can use `"warning" in respons
 ## Tasks
 
 - [x] Investigate codebase: framework, routing API, test runner, existing patterns
-- [ ] Create `src/app/pages/health.ts` with `createHealthHandler` factory and `healthHandler` export
-- [ ] Modify `src/worker.tsx` to register `route("/health", { get: healthHandler })`
-- [ ] Create `src/lib/health.test.ts` with test cases (normal, >24h, exactly 24h boundary, response structure)
-- [ ] Run `npm test` and confirm all tests pass
-- [ ] Run `npm run types` (type check) and confirm clean
+- [x] Create `src/app/pages/health.ts` with `createHealthHandler` factory and `healthHandler` export
+- [x] Modify `src/worker.tsx` to register `route("/health", { get: healthHandler })`
+- [x] Create `src/lib/health.test.ts` with test cases (normal, >24h, exactly 24h boundary, response structure)
+- [x] Run `npm test` and confirm all tests pass
+- [x] Run `npm run types` (type check) and confirm clean
+- [x] Make threshold configurable (`thresholdMs` parameter, default `DEFAULT_THRESHOLD_MS`)
+- [x] Export `START_TIME` as mutable object; add `beforeEach`/`afterEach` tests exercising the default uptime path
 
 ---
 
