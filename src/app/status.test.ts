@@ -32,15 +32,21 @@ describe("GET /status", () => {
     )
   })
 
-  it("response body contains exactly the keys: time, uptime, version", async () => {
+  it("response body contains exactly the keys: status, time, uptime, version", async () => {
     const res = statusHandler.get()
     const body = (await res.json()) as Record<string, unknown>
     const keys = Object.keys(body).sort()
     assert.deepStrictEqual(
       keys,
-      ["time", "uptime", "version"],
-      `Expected exactly ["time", "uptime", "version"], got ${JSON.stringify(keys)}`,
+      ["status", "time", "uptime", "version"],
+      `Expected exactly ["status", "time", "uptime", "version"], got ${JSON.stringify(keys)}`,
     )
+  })
+
+  it("status field equals \"ok\"", async () => {
+    const res = statusHandler.get()
+    const body = (await res.json()) as Record<string, unknown>
+    assert.strictEqual(body.status, "ok", `status must be "ok", got "${body.status}"`)
   })
 
   it("time is a string that parses as a valid ISO 8601 UTC date", async () => {
