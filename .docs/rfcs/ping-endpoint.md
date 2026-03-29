@@ -1,13 +1,13 @@
 # RFC: Add /ping Endpoint
 
 **Date:** 2026-03-29
-**Status:** Draft
+**Status:** Implemented
 
 ---
 
 ## 2000ft View
 
-Add a `/ping` health-check endpoint that returns `{"pong": true}` with HTTP 200. The endpoint has no side effects, requires no authentication, and exists solely as a lightweight liveness signal — useful for uptime monitors, load-balancer probes, and smoke tests.
+Add a `/ping` health-check endpoint that returns `{"pong": true, "timestamp": <unix-ms>}` with HTTP 200. The endpoint has no side effects, requires no authentication, and exists solely as a lightweight liveness signal — useful for uptime monitors, load-balancer probes, and smoke tests. The `timestamp` field carries the server-side millisecond epoch at the time of the response, giving callers a reference clock signal alongside the liveness confirmation.
 
 This is a pure API route: it does not go through the React/RSC rendering pipeline.
 
@@ -19,7 +19,7 @@ This is a pure API route: it does not go through the React/RSC rendering pipelin
 Register `route("/ping", { get: pingHandler })` at the top level of `defineApp`, before the `render()` call. Placing it before `render()` ensures the request is intercepted and returned directly without entering the React render pipeline.
 
 **[NEW] `src/lib/ping.ts`**
-Export `pingHandler` — a function that returns `Response.json({ pong: true })`. Extracting it to `src/lib/` makes it independently testable without mocking the full Worker environment, consistent with how `math.ts` is structured.
+Export `pingHandler` — a function that returns `Response.json({ pong: true, timestamp: Date.now() })`. Extracting it to `src/lib/` makes it independently testable without mocking the full Worker environment, consistent with how `math.ts` is structured.
 
 **[NEW] `src/lib/ping.test.ts`**
 Unit tests for `pingHandler` using Node's built-in `node:test` module, following the pattern established in `src/lib/math.test.ts`.
@@ -31,11 +31,12 @@ Unit tests for `pingHandler` using Node's built-in `node:test` module, following
 ```gherkin
 Feature: /ping endpoint
 
-  Scenario: GET /ping returns pong
+  Scenario: GET /ping returns pong with timestamp
     Given the server is running
     When a GET request is sent to /ping
     Then the response status is 200
-    And the response body is {"pong": true}
+    And the response body contains {"pong": true}
+    And the response body contains a "timestamp" field that is a positive integer (Unix ms)
     And the Content-Type header contains "application/json"
 
   Scenario: Non-GET method returns 405
@@ -48,10 +49,10 @@ Feature: /ping endpoint
 
 ## Types & Data Structures
 
-No new types. The response payload is a fixed literal object:
+No new types. The response payload shape:
 
 ```ts
-{ pong: true }  // boolean true, not a string
+{ pong: true; timestamp: number }  // pong is boolean true (not a string); timestamp is Date.now() in ms
 ```
 
 `Response.json()` is used (available in the Cloudflare Workers runtime), which sets `Content-Type: application/json` automatically.
@@ -61,6 +62,7 @@ No new types. The response payload is a fixed literal object:
 ## Invariants & Constraints
 
 - `pong` must be boolean `true`, not the string `"true"`
+- `timestamp` must be a number (milliseconds since Unix epoch, via `Date.now()`)
 - HTTP status must be 200 on success
 - No authentication, no DB access, no side effects
 - The route must not interfere with existing routes (especially `/`)
@@ -70,11 +72,12 @@ No new types. The response payload is a fixed literal object:
 
 ## Tasks
 
-- [ ] Create `src/lib/ping.ts` exporting `pingHandler`
-- [ ] Modify `src/worker.tsx` to register `route("/ping", { get: pingHandler })`
-- [ ] Create `src/lib/ping.test.ts` with unit tests covering the 200+body and Content-Type assertions
-- [ ] Run `pnpm test` — all tests pass
-- [ ] Run `pnpm types` — no type errors
+- [x] Create `src/lib/ping.ts` exporting `pingHandler`
+- [x] Modify `src/worker.tsx` to register `route("/ping", { get: pingHandler })`
+- [x] Create `src/lib/ping.test.ts` with unit tests covering the 200+body, timestamp presence, and Content-Type assertions
+- [x] Add `timestamp: Date.now()` to the response body
+- [x] Run `pnpm test` — all tests pass
+- [x] Run `pnpm types` — no type errors
 
 ---
 
