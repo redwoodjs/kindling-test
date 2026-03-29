@@ -2,7 +2,7 @@ import { describe, it } from "node:test"
 import assert from "node:assert"
 import { pingHandler } from "./ping.ts"
 
-describe("pingHandler", () => {
+describe("GET /ping", () => {
   it("returns HTTP 200", async () => {
     const response = pingHandler()
     assert.strictEqual(response.status, 200)
