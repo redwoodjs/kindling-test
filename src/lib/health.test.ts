@@ -1,6 +1,10 @@
-import { describe, it } from "node:test"
+import { describe, it, beforeEach, afterEach } from "node:test"
 import assert from "node:assert"
-import { createHealthHandler, type HealthResponse } from "../app/pages/health.js"
+import {
+  createHealthHandler,
+  START_TIME,
+  type HealthResponse,
+} from "../app/pages/health.js"
 
 const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000
 
@@ -65,5 +69,57 @@ describe("healthHandler", () => {
       contentType.includes("application/json"),
       `Expected content-type to include application/json, got: ${contentType}`,
     )
+  })
+
+  describe("warning field via mocked START_TIME", () => {
+    let savedStartTime: number
+
+    beforeEach(() => {
+      savedStartTime = START_TIME.value
+    })
+
+    afterEach(() => {
+      START_TIME.value = savedStartTime
+    })
+
+    it("returns warning when START_TIME is set to 25 hours ago (default uptime path)", async () => {
+      // Override the module-level start timestamp to simulate an isolate that
+      // has been running for 25 hours, then use the default (no-arg) handler so
+      // the real defaultGetUptimeMs() code path is exercised.
+      START_TIME.value = Date.now() - 25 * 60 * 60 * 1000
+      const handler = createHealthHandler()
+      const body = (await handler().json()) as HealthResponse & {
+        warning?: string
+      }
+      assert.strictEqual(body.healthy, true)
+      assert.strictEqual(body.warning, "uptime exceeds 24h, consider recycling")
+    })
+
+    it("returns no warning when START_TIME is recent (default uptime path)", async () => {
+      // Start time just set to now — uptime is effectively 0 ms.
+      START_TIME.value = Date.now()
+      const handler = createHealthHandler()
+      const body = (await handler().json()) as HealthResponse
+      assert.deepStrictEqual(body, { healthy: true })
+    })
+  })
+
+  describe("configurable threshold", () => {
+    it("returns no warning when uptime is under a custom threshold", async () => {
+      const ONE_HOUR_MS = 60 * 60 * 1000
+      const handler = createHealthHandler(() => ONE_HOUR_MS - 1, ONE_HOUR_MS)
+      const body = (await handler().json()) as HealthResponse
+      assert.deepStrictEqual(body, { healthy: true })
+    })
+
+    it("returns warning when uptime exceeds a custom threshold", async () => {
+      const ONE_HOUR_MS = 60 * 60 * 1000
+      const handler = createHealthHandler(() => ONE_HOUR_MS + 1, ONE_HOUR_MS)
+      const body = (await handler().json()) as HealthResponse & {
+        warning?: string
+      }
+      assert.strictEqual(body.healthy, true)
+      assert.strictEqual(body.warning, "uptime exceeds 24h, consider recycling")
+    })
   })
 })
