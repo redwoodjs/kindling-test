@@ -10,8 +10,14 @@ describe("GET /ping", () => {
 
   it("returns pong: true in the body", async () => {
     const response = pingHandler()
-    const body = await response.json()
-    assert.deepStrictEqual(body, { pong: true })
+    const body = (await response.json()) as { pong: boolean; timestamp: number }
+    assert.strictEqual(body.pong, true)
+  })
+
+  it("returns a numeric timestamp in the body", async () => {
+    const response = pingHandler()
+    const body = (await response.json()) as { pong: boolean; timestamp: number }
+    assert.strictEqual(typeof body.timestamp, "number")
   })
 
   it("sets Content-Type to application/json", () => {
