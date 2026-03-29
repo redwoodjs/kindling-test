@@ -1,6 +1,6 @@
 import { describe, it } from "node:test"
 import assert from "node:assert"
-import { add, subtract, multiply } from "./math.ts"
+import { add, subtract, multiply } from "./math"
 
 describe("math", () => {
   it("adds two numbers", () => {

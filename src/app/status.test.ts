@@ -1,31 +1,22 @@
-import { describe, it, before, after } from "node:test"
+import { describe, it, before } from "node:test"
 import assert from "node:assert"
-import { unstable_dev } from "wrangler"
-import type { UnstableDevWorker } from "wrangler"
+import { statusHandler } from "./status.js"
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
 
 describe("GET /status", () => {
-  let worker: UnstableDevWorker
+  let response: Response
 
   before(async () => {
-    worker = await unstable_dev("src/worker.tsx", {
-      experimental: { disableExperimentalWarning: true },
-    })
+    response = statusHandler.get()
   })
 
-  after(async () => {
-    await worker.stop()
+  it("returns HTTP 200", () => {
+    assert.strictEqual(response.status, 200)
   })
 
-  it("returns HTTP 200", async () => {
-    const res = await worker.fetch("/status")
-    assert.strictEqual(res.status, 200)
-  })
-
-  it("responds with application/json content type", async () => {
-    const res = await worker.fetch("/status")
-    const contentType = res.headers.get("content-type") ?? ""
+  it("responds with application/json content type", () => {
+    const contentType = response.headers.get("content-type") ?? ""
     assert.ok(
       contentType.includes("application/json"),
       `Expected content-type to include "application/json", got: "${contentType}"`,
@@ -33,7 +24,7 @@ describe("GET /status", () => {
   })
 
   it("response body is valid JSON", async () => {
-    const res = await worker.fetch("/status")
+    const res = statusHandler.get()
     const text = await res.text()
     assert.doesNotThrow(
       () => JSON.parse(text),
@@ -42,7 +33,7 @@ describe("GET /status", () => {
   })
 
   it("response body contains exactly the keys: time, uptime, version", async () => {
-    const res = await worker.fetch("/status")
+    const res = statusHandler.get()
     const body = (await res.json()) as Record<string, unknown>
     const keys = Object.keys(body).sort()
     assert.deepStrictEqual(
@@ -53,7 +44,7 @@ describe("GET /status", () => {
   })
 
   it("time is a string that parses as a valid ISO 8601 UTC date", async () => {
-    const res = await worker.fetch("/status")
+    const res = statusHandler.get()
     const body = (await res.json()) as Record<string, unknown>
     assert.strictEqual(typeof body.time, "string", "time must be a string")
     const parsed = new Date(body.time as string)
@@ -66,7 +57,7 @@ describe("GET /status", () => {
 
   it("time is within ±10 seconds of the current wall clock", async () => {
     const wallBefore = Date.now()
-    const res = await worker.fetch("/status")
+    const res = statusHandler.get()
     const wallAfter = Date.now()
     const body = (await res.json()) as Record<string, unknown>
     const serverTime = new Date(body.time as string).getTime()
@@ -77,7 +68,7 @@ describe("GET /status", () => {
   })
 
   it("uptime is a non-negative finite number", async () => {
-    const res = await worker.fetch("/status")
+    const res = statusHandler.get()
     const body = (await res.json()) as Record<string, unknown>
     assert.strictEqual(typeof body.uptime, "number", "uptime must be a number")
     assert.ok(isFinite(body.uptime as number), "uptime must be finite (not NaN or Infinity)")
@@ -85,10 +76,10 @@ describe("GET /status", () => {
   })
 
   it("uptime grows between sequential requests separated by ~1 second", async () => {
-    const res1 = await worker.fetch("/status")
+    const res1 = statusHandler.get()
     const body1 = (await res1.json()) as Record<string, unknown>
     await sleep(1100)
-    const res2 = await worker.fetch("/status")
+    const res2 = statusHandler.get()
     const body2 = (await res2.json()) as Record<string, unknown>
     assert.ok(
       (body2.uptime as number) > (body1.uptime as number),
@@ -97,14 +88,14 @@ describe("GET /status", () => {
   })
 
   it("version is a non-empty string", async () => {
-    const res = await worker.fetch("/status")
+    const res = statusHandler.get()
     const body = (await res.json()) as Record<string, unknown>
     assert.strictEqual(typeof body.version, "string", "version must be a string")
     assert.ok((body.version as string).length > 0, "version must be non-empty")
   })
 
   it("version matches the declared package version", async () => {
-    const res = await worker.fetch("/status")
+    const res = statusHandler.get()
     const body = (await res.json()) as Record<string, unknown>
     assert.strictEqual(
       body.version,
