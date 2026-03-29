@@ -4,6 +4,7 @@ import { defineApp } from "rwsdk/worker";
 import { Document } from "@/app/document";
 import { setCommonHeaders } from "@/app/headers";
 import { Home } from "@/app/pages/home";
+import { statusHandler } from "@/app/status";
 
 export type AppContext = {};
 
@@ -13,5 +14,6 @@ export default defineApp([
     // setup ctx here
     ctx;
   },
+  route("/status", statusHandler),
   render(Document, [route("/", Home)]),
 ]);
