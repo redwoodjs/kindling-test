@@ -1,0 +1,118 @@
+name: Windows Tunnel
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Git ref to checkout (branch, tag, SHA)"
+        required: false
+        default: "main"
+      timeout-minutes:
+        description: "Max session duration in minutes (default: 120)"
+        required: false
+        default: "120"
+
+jobs:
+  tunnel:
+    runs-on: windows-latest
+    timeout-minutes: ${{ fromJSON(inputs.timeout-minutes || '120') }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          corepack enable
+          pnpm install
+
+      - name: Configure SSH access
+        shell: bash
+        run: |
+          # context(justinvdm, 2026-03-26): Fetch the triggering user's SSH keys
+          # from GitHub and write them to authorized_keys so tmate restricts access.
+          mkdir -p ~/.ssh
+          curl -sL "https://github.com/${{ github.actor }}.keys" > ~/.ssh/authorized_keys
+          chmod 600 ~/.ssh/authorized_keys
+          echo "Authorized SSH keys for ${{ github.actor }}:"
+          cat ~/.ssh/authorized_keys
+
+      - name: Start tmate session
+        id: tmate
+        uses: mxschmitt/action-tmate@v3
+        with:
+          detached: true
+          limit-access-to-actor: true
+
+      - name: Publish SSH address
+        shell: C:\msys64\usr\bin\bash.exe --noprofile --norc -e -o pipefail {0}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # context(justinvdm, 2026-03-26): The tmate action with detached: true
+          # doesn't populate step outputs on Windows. Read the SSH address from
+          # tmate's socket instead, then publish as a commit status (readable via
+          # GitHub API while the run is still in progress).
+
+          export PATH="/usr/bin:/c/msys64/usr/bin:$PATH"
+          TMATE_SOCK="/tmp/tmate-$(id -u)/default"
+
+          # Poll for the SSH connection string
+          SSH_CMD=""
+          for i in $(seq 1 30); do
+            # Try multiple possible socket locations
+            for SOCK in "/tmp/tmate-$(id -u)/default" "/tmp/tmate.sock"; do
+              if [ -S "$SOCK" ]; then
+                SSH_CMD=$(tmate -S "$SOCK" display -p '#{tmate_ssh}' 2>/dev/null || true)
+                if [ -n "$SSH_CMD" ]; then
+                  break 2
+                fi
+              fi
+            done
+            sleep 2
+          done
+
+          if [ -z "$SSH_CMD" ]; then
+            echo "::warning::Could not read SSH from tmate socket. Checking step outputs..."
+            SSH_CMD="${{ steps.tmate.outputs.ssh }}"
+          fi
+
+          if [ -z "$SSH_CMD" ]; then
+            echo "::error::Failed to get tmate SSH address"
+            exit 1
+          fi
+
+          echo "SSH address: $SSH_CMD"
+
+          # Publish as a commit status
+          HEAD_SHA=$(git rev-parse HEAD)
+          /c/Program\ Files/GitHub\ CLI/gh.exe api "repos/${{ github.repository }}/statuses/${HEAD_SHA}" \
+            -f state=success \
+            -f description="${SSH_CMD}" \
+            -f context="windows-tunnel" \
+            -f target_url="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          echo "Published SSH address as commit status on ${HEAD_SHA}"
+
+      - name: Hold runner alive
+        shell: bash
+        run: |
+          echo "Tunnel is active. Waiting for session to end or timeout..."
+          echo "To end early, SSH in and run: touch /tmp/keepalive-stop"
+          while true; do
+            if [ -f /tmp/keepalive-stop ]; then
+              echo "Stop signal received, shutting down."
+              break
+            fi
+            sleep 30
+          done
