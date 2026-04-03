@@ -18,6 +18,10 @@ npm run dev
 
 Point your browser to the URL displayed in the terminal (e.g. `http://localhost:5173/`). You should see the RedwoodSDK welcome page in your browser.
 
+## Overview
+
+This project includes a small shared library under `lib/` with utility functions such as a greeting message helper and a farewell message helper.
+
 ## Further Reading
 
 - [RedwoodSDK Documentation](https://docs.rwsdk.com/)
