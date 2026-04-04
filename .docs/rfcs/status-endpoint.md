@@ -2,7 +2,7 @@
 
 **Date**: 2026-03-29
 **Author**: Developer
-**Status**: Draft
+**Status**: Implemented
 
 ---
 
@@ -118,19 +118,19 @@ No changes to `AppContext` are required.
 ## Tasks
 
 ### Preparation
-- [ ] Broaden `test` script in `package.json` from `src/lib/*.test.ts` to `src/**/*.test.ts`
+- [x] Broaden `test` script in `package.json` from `src/lib/*.test.ts` to `src/**/*.test.ts`
 
 ### Implementation
-- [ ] Create `src/app/status.ts`:
+- [x] Create `src/app/status.ts`:
   - Module-level `START_TIME = Date.now()`
   - Static import of `package.json` to extract `version` into `VERSION`
   - Export `statusHandler` as a method-handlers object `{ get: () => Response.json(payload) }`
-- [ ] Modify `src/worker.tsx`:
+- [x] Modify `src/worker.tsx`:
   - Import `statusHandler` from `@/app/status`
   - Add `route("/status", statusHandler)` to `defineApp([...])` array, before the `render(...)` entry
 
 ### Tests
-- [ ] Create `src/app/status.test.ts`:
+- [x] Create `src/app/status.test.ts`:
   - Test that the handler returns HTTP 200
   - Test that `Content-Type` is `application/json`
   - Test that the response body is parseable JSON with `time`, `uptime`, `version` fields
@@ -140,9 +140,9 @@ No changes to `AppContext` are required.
   - Test that no extra fields are present in the response body
 
 ### Verification
-- [ ] Run `pnpm test` — all tests pass
-- [ ] Run `pnpm run types` — no TypeScript errors
-- [ ] Smoke-test with `curl` against the local dev server
+- [x] Run `pnpm test` — all tests pass
+- [x] Run `pnpm run types` — no TypeScript errors
+- [x] Smoke-test with `curl` against the local dev server
 
 ---
 

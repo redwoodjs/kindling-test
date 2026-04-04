@@ -38,6 +38,37 @@ Content-Type: application/json
 
 ---
 
+## GET /status
+
+**Purpose**: Machine-readable liveness and version report. Returns the server status, a per-request UUID, the current server time, uptime in seconds, and the application version.
+
+**Authentication**: None. Publicly accessible by design.
+
+**Method restriction**: GET only. All other methods return `405 Method Not Allowed` (enforced by rwsdk's `MethodHandlers` built-in).
+
+### Response — success
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"status": "ok", "requestId": "<uuid>", "time": "<iso-8601>", "uptime": <seconds>, "version": "1.0.0"}
+```
+
+**`status`**: Always `"ok"`.
+
+**`requestId`**: A fresh UUID v4 generated on each request via `crypto.randomUUID()`.
+
+**`time`**: ISO 8601 UTC timestamp of the server's wall-clock time at request time, produced by `new Date().toISOString()`.
+
+**`uptime`**: Whole seconds elapsed since the Worker module was first loaded (cold-start). Calculated as `Math.floor((Date.now() - START_TIME) / 1000)`. Resets on each cold start. See `.docs/learnings/cloudflare-workers-uptime.md` for rationale.
+
+**`version`**: The application version string read once from `package.json` at module initialisation. Never re-read per request.
+
+**Side effects**: None. Read-only.
+
+---
+
 ## GET /
 
 React SSR homepage. Rendered via rwsdk's `render(Document, [...])` pipeline.
