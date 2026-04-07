@@ -38,6 +38,27 @@ Content-Type: application/json
 
 ---
 
+## GET /hello
+
+**Purpose**: Simple greeting endpoint that returns a hello world message. Useful for smoke tests and basic connectivity verification.
+
+**Authentication**: None. Publicly accessible by design.
+
+**Method restriction**: GET only. All other methods return `405 Method Not Allowed`.
+
+**Response**:
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"message": "hello world"}
+```
+
+**Side effects**: None. Read-only.
+
+---
+
 ## GET /
 
 React SSR homepage. Rendered via rwsdk's `render(Document, [...])` pipeline.
