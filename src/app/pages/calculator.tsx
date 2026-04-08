@@ -2,6 +2,12 @@
 
 import { useState, useEffect, useRef } from "react";
 import styles from "./calculator.module.css";
+import {
+  computeMortgage as calcComputeMortgage,
+  parseCurrency,
+  formatCurrency,
+  type DownPaymentMode,
+} from "../../lib/calculator.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -90,153 +96,15 @@ function computeMortgage(inputs: {
   propertyTax: string;
   insurance: string;
 }): MortgageResults {
-  const { homePrice, downPayment, downPaymentMode, interestRate, loanTermYears, propertyTax, insurance } = inputs;
-
-  // ── Home price ───────────────────────────────────────────────────────────
-  const hp = parseCurrency(homePrice);
-  if (homePrice !== "" && (Number.isNaN(hp) || hp <= 0)) {
-    return {
-      monthlyPI: 0, monthlyTax: 0, monthlyInsurance: 0, monthlyTotal: 0,
-      totalCost: 0, totalInterest: 0, principal: 0, hasError: true,
-      errorField: "homePrice",
-      errorMessage: hp === 0
-        ? "Home price must be greater than zero."
-        : "Enter a valid home price.",
-    };
-  }
-  if (!Number.isNaN(hp) && hp > 100_000_000) {
-    return {
-      monthlyPI: 0, monthlyTax: 0, monthlyInsurance: 0, monthlyTotal: 0,
-      totalCost: 0, totalInterest: 0, principal: 0, hasError: true,
-      errorField: "homePrice",
-      errorMessage: "Home price cannot exceed $100,000,000.",
-    };
-  }
-
-  // ── Down payment ──────────────────────────────────────────────────────────
-  const dpRaw = parseCurrency(downPayment);
-  if (downPayment !== "" && Number.isNaN(dpRaw)) {
-    return {
-      monthlyPI: 0, monthlyTax: 0, monthlyInsurance: 0, monthlyTotal: 0,
-      totalCost: 0, totalInterest: 0, principal: 0, hasError: true,
-      errorField: "downPayment",
-      errorMessage: "Enter a valid down payment.",
-    };
-  }
-  if (downPayment !== "" && !Number.isNaN(dpRaw)) {
-    if (downPaymentMode === "amount") {
-      if (!Number.isNaN(hp) && dpRaw < 0) {
-        return {
-          monthlyPI: 0, monthlyTax: 0, monthlyInsurance: 0, monthlyTotal: 0,
-          totalCost: 0, totalInterest: 0, principal: 0, hasError: true,
-          errorField: "downPayment",
-          errorMessage: "Down payment cannot be negative.",
-        };
-      }
-      if (!Number.isNaN(hp) && dpRaw > hp) {
-        return {
-          monthlyPI: 0, monthlyTax: 0, monthlyInsurance: 0, monthlyTotal: 0,
-          totalCost: 0, totalInterest: 0, principal: 0, hasError: true,
-          errorField: "downPayment",
-          errorMessage: "Down payment cannot exceed the home price.",
-        };
-      }
-    } else {
-      // percent mode
-      if (dpRaw > 100) {
-        return {
-          monthlyPI: 0, monthlyTax: 0, monthlyInsurance: 0, monthlyTotal: 0,
-          totalCost: 0, totalInterest: 0, principal: 0, hasError: true,
-          errorField: "downPayment",
-          errorMessage: "Down payment cannot exceed 100% of the home price.",
-        };
-      }
-    }
-  }
-
-  // Resolve effective down payment in dollars
-  let dpAmount = 0;
-  if (downPayment !== "" && !Number.isNaN(dpRaw) && !Number.isNaN(hp)) {
-    dpAmount =
-      downPaymentMode === "percent"
-        ? hp * (dpRaw / 100)
-        : dpRaw;
-  }
-
-  // ── Interest rate ────────────────────────────────────────────────────────
-  const rate = parseFloat(interestRate);
-  if (interestRate !== "" && (Number.isNaN(rate) || rate < 0.1)) {
-    return {
-      monthlyPI: 0, monthlyTax: 0, monthlyInsurance: 0, monthlyTotal: 0,
-      totalCost: 0, totalInterest: 0, principal: 0, hasError: true,
-      errorField: "interestRate",
-      errorMessage: "Interest rate must be at least 0.1%.",
-    };
-  }
-  if (!Number.isNaN(rate) && rate > 30) {
-    return {
-      monthlyPI: 0, monthlyTax: 0, monthlyInsurance: 0, monthlyTotal: 0,
-      totalCost: 0, totalInterest: 0, principal: 0, hasError: true,
-      errorField: "interestRate",
-      errorMessage: "Interest rate cannot exceed 30%.",
-    };
-  }
-
-  // ── Loan term ─────────────────────────────────────────────────────────────
-  if (loanTermYears < 1) {
-    return {
-      monthlyPI: 0, monthlyTax: 0, monthlyInsurance: 0, monthlyTotal: 0,
-      totalCost: 0, totalInterest: 0, principal: 0, hasError: true,
-      errorField: "loanTerm",
-      errorMessage: "Loan term must be at least 1 year.",
-    };
-  }
-  if (loanTermYears > 40) {
-    return {
-      monthlyPI: 0, monthlyTax: 0, monthlyInsurance: 0, monthlyTotal: 0,
-      totalCost: 0, totalInterest: 0, principal: 0, hasError: true,
-      errorField: "loanTerm",
-      errorMessage: "Loan term cannot exceed 40 years.",
-    };
-  }
-
-  // ── Required field check ──────────────────────────────────────────────────
-  const requiredReady =
-    !Number.isNaN(hp) && hp > 0 &&
-    downPayment !== "" && !Number.isNaN(dpRaw) &&
-    interestRate !== "" && !Number.isNaN(rate);
-
-  if (!requiredReady) {
-    return {
-      monthlyPI: 0, monthlyTax: 0, monthlyInsurance: 0, monthlyTotal: 0,
-      totalCost: 0, totalInterest: 0, principal: 0, hasError: true,
-    };
-  }
-
-  // ── Optional fields ────────────────────────────────────────────────────────
-  const tax = parseCurrency(propertyTax);
-  const ins = parseCurrency(insurance);
-  const monthlyTax = !Number.isNaN(tax) && tax > 0 ? tax / 12 : 0;
-  const monthlyInsurance = !Number.isNaN(ins) && ins > 0 ? ins / 12 : 0;
-
-  // ── Compute ───────────────────────────────────────────────────────────────
-  const principal = hp - dpAmount;
-  const monthlyPI = calculateMonthlyPI(principal, rate, loanTermYears);
-  const monthlyTotal = Math.round((monthlyPI + monthlyTax + monthlyInsurance) * 100) / 100;
-  const totalMonths = loanTermYears * 12;
-  const totalCost = Math.round(monthlyTotal * totalMonths * 100) / 100;
-  const totalInterest = Math.max(0, Math.round((totalCost - principal) * 100) / 100);
-
-  return {
-    monthlyPI,
-    monthlyTax: Math.round(monthlyTax * 100) / 100,
-    monthlyInsurance: Math.round(monthlyInsurance * 100) / 100,
-    monthlyTotal,
-    totalCost,
-    totalInterest,
-    principal: Math.round(principal * 100) / 100,
-    hasError: false,
-  };
+  return calcComputeMortgage({
+    homePriceRaw: inputs.homePrice,
+    dpRaw: inputs.downPayment,
+    dpMode: inputs.downPaymentMode,
+    interestRateRaw: inputs.interestRate,
+    loanTermYears: inputs.loanTermYears,
+    taxRaw: inputs.propertyTax,
+    insuranceRaw: inputs.insurance,
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -267,14 +135,14 @@ export const Calculator = () => {
   const animationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Derive results on every render
-  const results = computeMortgage({
-    homePrice,
-    downPayment,
-    downPaymentMode,
-    interestRate,
+  const results = calcComputeMortgage({
+    homePriceRaw: homePrice,
+    dpRaw: downPayment,
+    dpMode: downPaymentMode,
+    interestRateRaw: interestRate,
     loanTermYears,
-    propertyTax,
-    insurance,
+    taxRaw: propertyTax,
+    insuranceRaw: insurance,
   });
 
   // Trigger CSS animation when monthlyTotal changes to a non-zero value

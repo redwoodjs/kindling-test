@@ -1,0 +1,1019 @@
+import { describe, it, beforeEach } from "node:test"
+import assert from "node:assert"
+import {
+  computeMortgage,
+  parseCurrency,
+  formatCurrency,
+  computeDownPaymentFromPercent,
+  computeDownPaymentFromAmount,
+  computePrincipal,
+  getDownPaymentDisplay,
+  DOWN_PAYMENT_MAX_PERCENT,
+  HOME_PRICE_MIN,
+  HOME_PRICE_MAX,
+  RATE_MIN,
+  RATE_MAX,
+  TERM_MIN,
+  TERM_MAX,
+  INSURANCE_MAX,
+  TAX_MAX,
+} from "./calculator.js"
+
+// ---------------------------------------------------------------------------
+// parseCurrency
+// ---------------------------------------------------------------------------
+
+describe("parseCurrency", () => {
+  it("parses a plain integer string", () => {
+    assert.strictEqual(parseCurrency("500000"), 500000)
+  })
+
+  it("parses a string with commas", () => {
+    assert.strictEqual(parseCurrency("500,000"), 500000)
+  })
+
+  it("parses a string with a dollar sign", () => {
+    assert.strictEqual(parseCurrency("$500000"), 500000)
+  })
+
+  it("parses a string with commas and dollar sign", () => {
+    assert.strictEqual(parseCurrency("$500,000"), 500000)
+  })
+
+  it("parses a string with spaces", () => {
+    assert.strictEqual(parseCurrency("$ 500, 000 "), 500000)
+  })
+
+  it("returns NaN for a purely non-numeric string", () => {
+    assert.ok(Number.isNaN(parseCurrency("abc")))
+  })
+
+  it("returns NaN for an empty string", () => {
+    assert.ok(Number.isNaN(parseCurrency("")))
+  })
+})
+
+// ---------------------------------------------------------------------------
+// formatCurrency
+// ---------------------------------------------------------------------------
+
+describe("formatCurrency", () => {
+  it("formats an integer with commas and dollar sign", () => {
+    assert.strictEqual(formatCurrency(500000), "$500,000.00")
+  })
+
+  it("formats a large number with multiple commas", () => {
+    assert.strictEqual(formatCurrency(12345678), "$12,345,678.00")
+  })
+
+  it("formats a small number without trailing zeros beyond cents", () => {
+    const result = formatCurrency(1234.56)
+    assert.ok(result.startsWith("$1,234.56") || result.startsWith("$1,234.5"))
+  })
+
+  it("formats zero as $0.00", () => {
+    assert.strictEqual(formatCurrency(0), "$0.00")
+  })
+})
+
+// ---------------------------------------------------------------------------
+// computeDownPaymentFromPercent
+// ---------------------------------------------------------------------------
+
+describe("computeDownPaymentFromPercent", () => {
+  it("computes 20% of 500,000 as 100,000", () => {
+    assert.strictEqual(computeDownPaymentFromPercent(500000, 20), 100000)
+  })
+
+  it("computes 0% as 0", () => {
+    assert.strictEqual(computeDownPaymentFromPercent(500000, 0), 0)
+  })
+
+  it("computes 100% as the full home price", () => {
+    assert.strictEqual(computeDownPaymentFromPercent(500000, 100), 500000)
+  })
+
+  it("rounds fractional dollar amounts to the nearest cent", () => {
+    // 10% of 333,333 = 33,333.30
+    const result = computeDownPaymentFromPercent(333333, 10)
+    assert.strictEqual(result, 33333.3)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// computeDownPaymentFromAmount
+// ---------------------------------------------------------------------------
+
+describe("computeDownPaymentFromAmount", () => {
+  it("returns the raw amount unchanged", () => {
+    assert.strictEqual(computeDownPaymentFromAmount(100000), 100000)
+  })
+
+  it("returns zero for zero input", () => {
+    assert.strictEqual(computeDownPaymentFromAmount(0), 0)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// computePrincipal
+// ---------------------------------------------------------------------------
+
+describe("computePrincipal", () => {
+  it("subtracts down payment from home price", () => {
+    assert.strictEqual(computePrincipal(500000, 100000), 400000)
+  })
+
+  it("returns full home price when down payment is zero", () => {
+    assert.strictEqual(computePrincipal(500000, 0), 500000)
+  })
+
+  it("returns zero when down payment equals home price", () => {
+    assert.strictEqual(computePrincipal(500000, 500000), 0)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// DOWN_PAYMENT_MAX_PERCENT constant
+// ---------------------------------------------------------------------------
+
+describe("DOWN_PAYMENT_MAX_PERCENT", () => {
+  it("is 100", () => {
+    assert.strictEqual(DOWN_PAYMENT_MAX_PERCENT, 100)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// HOME_PRICE_MIN and HOME_PRICE_MAX constants
+// ---------------------------------------------------------------------------
+
+describe("home price bounds constants", () => {
+  it("HOME_PRICE_MIN is greater than 0", () => {
+    assert.ok(HOME_PRICE_MIN > 0)
+  })
+
+  it("HOME_PRICE_MAX is 100,000,000", () => {
+    assert.strictEqual(HOME_PRICE_MAX, 100_000_000)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// rate bounds constants
+// ---------------------------------------------------------------------------
+
+describe("interest rate bounds constants", () => {
+  it("RATE_MIN is 0.1", () => {
+    assert.strictEqual(RATE_MIN, 0.1)
+  })
+
+  it("RATE_MAX is 30", () => {
+    assert.strictEqual(RATE_MAX, 30)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// loan term bounds constants
+// ---------------------------------------------------------------------------
+
+describe("loan term bounds constants", () => {
+  it("TERM_MIN is 1", () => {
+    assert.strictEqual(TERM_MIN, 1)
+  })
+
+  it("TERM_MAX is 40", () => {
+    assert.strictEqual(TERM_MAX, 40)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// TAX_MAX and INSURANCE_MAX constants
+// ---------------------------------------------------------------------------
+
+describe("optional field bounds constants", () => {
+  it("TAX_MAX is 100,000", () => {
+    assert.strictEqual(TAX_MAX, 100_000)
+  })
+
+  it("INSURANCE_MAX is 100,000", () => {
+    assert.strictEqual(INSURANCE_MAX, 100_000)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// computeMortgage: default/incomplete inputs
+// ---------------------------------------------------------------------------
+
+describe("computeMortgage — incomplete required inputs", () => {
+  it("returns hasError=true when home price is 0", () => {
+    const result = computeMortgage({
+      homePriceRaw: "0",
+      dpRaw: "0",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.hasError, true)
+    assert.strictEqual(result.errorField, "homePrice")
+    assert.ok(result.errorMessage?.length > 0)
+  })
+
+  it("returns hasError=true when home price is empty (NaN)", () => {
+    const result = computeMortgage({
+      homePriceRaw: "",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.hasError, true)
+    // empty home price shows no errorField (requiredReady gate catches it before specific field error)
+  })
+
+  it("returns hasError=true when home price exceeds maximum", () => {
+    const result = computeMortgage({
+      homePriceRaw: "150000000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.hasError, true)
+    assert.strictEqual(result.errorField, "homePrice")
+  })
+
+  it("returns hasError=true when down payment amount exceeds home price", () => {
+    const result = computeMortgage({
+      homePriceRaw: "300000",
+      dpRaw: "400000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.hasError, true)
+    assert.strictEqual(result.errorField, "downPayment")
+    assert.ok(result.errorMessage?.length > 0)
+  })
+
+  it("returns hasError=true when down payment amount is negative", () => {
+    const result = computeMortgage({
+      homePriceRaw: "300000",
+      dpRaw: "-10000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.hasError, true)
+    assert.strictEqual(result.errorField, "downPayment")
+  })
+
+  it("returns hasError=true when down payment percent exceeds 100", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "150",
+      dpMode: "percent",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.hasError, true)
+    assert.strictEqual(result.errorField, "downPayment")
+  })
+
+  it("returns hasError=true when interest rate is negative", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "-5",
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.hasError, true)
+    assert.strictEqual(result.errorField, "interestRate")
+  })
+
+  it("returns hasError=true when interest rate is zero", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "0",
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.hasError, true)
+    assert.strictEqual(result.errorField, "interestRate")
+  })
+
+  it("returns hasError=true when interest rate is below minimum threshold", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "0.05",
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.hasError, true)
+    assert.strictEqual(result.errorField, "interestRate")
+  })
+
+  it("returns hasError=true when interest rate exceeds 30%", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "35",
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.hasError, true)
+    assert.strictEqual(result.errorField, "interestRate")
+  })
+
+  it("returns hasError=true when loan term is less than 1 year", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 0.5,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.hasError, true)
+    assert.strictEqual(result.errorField, "loanTerm")
+  })
+
+  it("returns hasError=true when loan term exceeds 40 years", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 45,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.hasError, true)
+    assert.strictEqual(result.errorField, "loanTerm")
+  })
+
+  it("returns hasError=true when loan term is empty/undefined default", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 0, // zero as default for invalid state
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.hasError, true)
+    assert.strictEqual(result.errorField, "loanTerm")
+  })
+})
+
+// ---------------------------------------------------------------------------
+// computeMortgage: valid inputs — results are positive numbers
+// ---------------------------------------------------------------------------
+
+describe("computeMortgage — valid required inputs produce positive results", () => {
+  let result: ReturnType<typeof computeMortgage>
+
+  beforeEach(() => {
+    result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+  })
+
+  it("hasError is false", () => {
+    assert.strictEqual(result.hasError, false)
+  })
+
+  it("monthlyPI is a positive finite number", () => {
+    assert.ok(result.monthlyPI > 0, "monthlyPI must be positive")
+    assert.ok(Number.isFinite(result.monthlyPI), "monthlyPI must be finite")
+  })
+
+  it("monthlyTotal is a positive finite number", () => {
+    assert.ok(result.monthlyTotal > 0, "monthlyTotal must be positive")
+    assert.ok(Number.isFinite(result.monthlyTotal), "monthlyTotal must be finite")
+  })
+
+  it("totalInterest is a positive finite number", () => {
+    assert.ok(result.totalInterest > 0, "totalInterest must be positive")
+    assert.ok(Number.isFinite(result.totalInterest), "totalInterest must be finite")
+  })
+
+  it("totalCost is a positive finite number", () => {
+    assert.ok(result.totalCost > 0, "totalCost must be positive")
+    assert.ok(Number.isFinite(result.totalCost), "totalCost must be finite")
+  })
+
+  it("principal equals home price minus down payment", () => {
+    assert.strictEqual(result.principal, 400000)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// computeMortgage: down payment 100% of home price
+// ---------------------------------------------------------------------------
+
+describe("computeMortgage — 100% down payment (no principal)", () => {
+  let result: ReturnType<typeof computeMortgage>
+
+  beforeEach(() => {
+    result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100",
+      dpMode: "percent",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+  })
+
+  it("hasError is false (100% is allowed)", () => {
+    assert.strictEqual(result.hasError, false)
+  })
+
+  it("principal is zero", () => {
+    assert.strictEqual(result.principal, 0)
+  })
+
+  it("monthlyPI is zero", () => {
+    assert.strictEqual(result.monthlyPI, 0)
+  })
+
+  it("totalInterest is zero", () => {
+    assert.strictEqual(result.totalInterest, 0)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// computeMortgage: down payment percent mode
+// ---------------------------------------------------------------------------
+
+describe("computeMortgage — down payment percent mode", () => {
+  it("uses correct effective down payment (20% of 500,000)", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "20",
+      dpMode: "percent",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.hasError, false)
+    assert.strictEqual(result.principal, 400000)
+  })
+
+  it("zero percent yields full principal", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "0",
+      dpMode: "percent",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.hasError, false)
+    assert.strictEqual(result.principal, 500000)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// computeMortgage: real-time recalculation (no submit needed)
+// ---------------------------------------------------------------------------
+
+describe("computeMortgage — recalculates on every call without errors", () => {
+  it("changing rate produces a new monthlyPI without throwing", () => {
+    const base = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+
+    const updated = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "6",
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+
+    assert.notStrictEqual(base.monthlyPI, updated.monthlyPI)
+    assert.ok(updated.monthlyPI > 0)
+  })
+
+  it("changing home price produces a new totalCost without throwing", () => {
+    const base = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+
+    const updated = computeMortgage({
+      homePriceRaw: "600000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+
+    assert.notStrictEqual(base.totalCost, updated.totalCost)
+    assert.ok(updated.totalCost > 0)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// computeMortgage: optional tax field
+// ---------------------------------------------------------------------------
+
+describe("computeMortgage — optional property tax field", () => {
+  it("monthlyTax is 0 when field is empty", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.monthlyTax, 0)
+  })
+
+  it("monthlyTax is tax annual divided by 12", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "6000",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.monthlyTax, 500)
+  })
+
+  it("monthlyTax is 0 when field is invalid", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "abc",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.monthlyTax, 0)
+  })
+
+  it("monthlyTotal includes tax when field is filled", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "6000",
+      insuranceRaw: "",
+    })
+    assert.ok(result.monthlyTotal > result.monthlyPI)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// computeMortgage: optional insurance field
+// ---------------------------------------------------------------------------
+
+describe("computeMortgage — optional insurance field", () => {
+  it("monthlyInsurance is 0 when field is empty", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.monthlyInsurance, 0)
+  })
+
+  it("monthlyInsurance is insurance annual divided by 12", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "1800",
+    })
+    assert.strictEqual(result.monthlyInsurance, 150)
+  })
+
+  it("monthlyInsurance is 0 when field is invalid", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "xyz",
+    })
+    assert.strictEqual(result.monthlyInsurance, 0)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// computeMortgage: monthlyTotal = monthlyPI + monthlyTax + monthlyInsurance
+// ---------------------------------------------------------------------------
+
+describe("computeMortgage — monthlyTotal equals sum of components", () => {
+  it("monthlyTotal equals monthlyPI + monthlyTax + monthlyInsurance", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "6000",
+      insuranceRaw: "1800",
+    })
+    assert.strictEqual(
+      result.monthlyTotal,
+      result.monthlyPI + result.monthlyTax + result.monthlyInsurance,
+    )
+  })
+
+  it("monthlyTotal equals monthlyPI when tax and insurance are empty", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.monthlyTotal, result.monthlyPI)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// computeMortgage: totalCost = monthlyTotal * loanTermMonths
+// ---------------------------------------------------------------------------
+
+describe("computeMortgage — totalCost equals monthlyTotal times loan term months", () => {
+  it("totalCost for 30-year loan", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.totalCost, Math.round(result.monthlyTotal * 30 * 12 * 100) / 100)
+  })
+
+  it("totalCost for 15-year loan", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 15,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.totalCost, Math.round(result.monthlyTotal * 15 * 12 * 100) / 100)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// computeMortgage: totalInterest = totalCost - principal
+// ---------------------------------------------------------------------------
+
+describe("computeMortgage — totalInterest equals totalCost minus principal", () => {
+  it("totalInterest is correct for a standard loan", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.totalInterest, result.totalCost - result.principal)
+  })
+
+  it("totalInterest is zero for 100% down payment", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100",
+      dpMode: "percent",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.totalInterest, 0)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// computeMortgage: long loan term — total interest can exceed principal
+// ---------------------------------------------------------------------------
+
+describe("computeMortgage — long loan term (40 years, 7%)", () => {
+  it("total interest exceeds principal", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 40,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.hasError, false)
+    assert.ok(result.totalInterest > result.principal, "totalInterest must exceed principal for 40yr/7% loan")
+    assert.ok(Number.isFinite(result.totalInterest), "totalInterest must be finite")
+  })
+})
+
+// ---------------------------------------------------------------------------
+// computeMortgage: custom loan term values
+// ---------------------------------------------------------------------------
+
+describe("computeMortgage — custom loan term values", () => {
+  it("25-year term computes without error", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 25,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.hasError, false)
+    assert.ok(result.monthlyPI > 0)
+  })
+
+  it("1-year term computes without error", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 1,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.hasError, false)
+    assert.ok(result.monthlyPI > 0)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// computeMortgage: error precedence (first invalid field in form order)
+// ---------------------------------------------------------------------------
+
+describe("computeMortgage — error precedence follows form order", () => {
+  it("home price error takes precedence over down payment error", () => {
+    const result = computeMortgage({
+      homePriceRaw: "-1",       // invalid
+      dpRaw: "99999999",       // would also be invalid relative to -1 price
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.errorField, "homePrice")
+  })
+
+  it("down payment error takes precedence over interest rate error", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",   // valid
+      dpRaw: "99999999",       // exceeds home price → down payment error
+      dpMode: "amount",
+      interestRateRaw: "-5",   // would also be invalid
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.errorField, "downPayment")
+  })
+
+  it("interest rate error takes precedence over loan term error", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "-1",   // invalid
+      loanTermYears: 0.5,     // would also be invalid
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.errorField, "interestRate")
+  })
+})
+
+// ---------------------------------------------------------------------------
+// computeMortgage: currency string with commas parses correctly
+// ---------------------------------------------------------------------------
+
+describe("computeMortgage — currency string with commas parses correctly", () => {
+  it("home price field with commas parses to correct numeric value", () => {
+    const result = computeMortgage({
+      homePriceRaw: "$500,000",
+      dpRaw: "$100,000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.hasError, false)
+    assert.strictEqual(result.principal, 400000)
+  })
+
+  it("tax field with commas and dollar sign parses correctly", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "$6,000",
+      insuranceRaw: "",
+    })
+    assert.strictEqual(result.monthlyTax, 500)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// computeMortgage: non-numeric string inputs
+// ---------------------------------------------------------------------------
+
+describe("computeMortgage — non-numeric string inputs do not crash", () => {
+  it("non-numeric home price field does not throw", () => {
+    assert.doesNotThrow(() => {
+      computeMortgage({
+        homePriceRaw: "abc",
+        dpRaw: "100000",
+        dpMode: "amount",
+        interestRateRaw: "7",
+        loanTermYears: 30,
+        taxRaw: "",
+        insuranceRaw: "",
+      })
+    })
+  })
+
+  it("non-numeric down payment does not throw", () => {
+    assert.doesNotThrow(() => {
+      computeMortgage({
+        homePriceRaw: "500000",
+        dpRaw: "xyz",
+        dpMode: "amount",
+        interestRateRaw: "7",
+        loanTermYears: 30,
+        taxRaw: "",
+        insuranceRaw: "",
+      })
+    })
+  })
+
+  it("non-numeric interest rate does not throw", () => {
+    assert.doesNotThrow(() => {
+      computeMortgage({
+        homePriceRaw: "500000",
+        dpRaw: "100000",
+        dpMode: "amount",
+        interestRateRaw: "nope",
+        loanTermYears: 30,
+        taxRaw: "",
+        insuranceRaw: "",
+      })
+    })
+  })
+})
+
+// ---------------------------------------------------------------------------
+// computeMortgage: values are never NaN or negative in non-error state
+// ---------------------------------------------------------------------------
+
+describe("computeMortgage — no NaN or negative values in non-error state", () => {
+  it("no NaN in any result field for a valid loan", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "6000",
+      insuranceRaw: "1800",
+    })
+    assert.ok(!Number.isNaN(result.monthlyPI), "monthlyPI must not be NaN")
+    assert.ok(!Number.isNaN(result.monthlyTax), "monthlyTax must not be NaN")
+    assert.ok(!Number.isNaN(result.monthlyInsurance), "monthlyInsurance must not be NaN")
+    assert.ok(!Number.isNaN(result.monthlyTotal), "monthlyTotal must not be NaN")
+    assert.ok(!Number.isNaN(result.totalCost), "totalCost must not be NaN")
+    assert.ok(!Number.isNaN(result.totalInterest), "totalInterest must not be NaN")
+    assert.ok(!Number.isNaN(result.principal), "principal must not be NaN")
+  })
+
+  it("no negative monthlyPI for a standard loan", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.ok(result.monthlyPI >= 0, "monthlyPI must not be negative")
+  })
+
+  it("no negative totalCost", () => {
+    const result = computeMortgage({
+      homePriceRaw: "500000",
+      dpRaw: "100000",
+      dpMode: "amount",
+      interestRateRaw: "7",
+      loanTermYears: 30,
+      taxRaw: "",
+      insuranceRaw: "",
+    })
+    assert.ok(result.totalCost >= 0, "totalCost must not be negative")
+  })
+})
+
+// ---------------------------------------------------------------------------
+// getDownPaymentDisplay
+// ---------------------------------------------------------------------------
+
+describe("getDownPaymentDisplay", () => {
+  it("returns amount-mode display string", () => {
+    const display = getDownPaymentDisplay(100000, "amount", 500000)
+    assert.ok(display.includes("100000") || display.includes("100,000"))
+  })
+
+  it("returns percent-mode display string", () => {
+    const display = getDownPaymentDisplay(100000, "percent", 500000)
+    assert.ok(display.includes("20") || display.includes("20.0"))
+  })
+
+  it("handles zero home price without throwing", () => {
+    assert.doesNotThrow(() => {
+      getDownPaymentDisplay(100000, "percent", 0)
+    })
+  })
+})
