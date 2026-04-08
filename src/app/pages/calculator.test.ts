@@ -1,4 +1,5 @@
-import { describe, it, expect } from "node:test";
+import { describe, it } from "node:test";
+import assert from "node:assert";
 import {
   compute,
   formatResult,
@@ -6,9 +7,10 @@ import {
   applyOperator,
   applyEquals,
   applyClear,
+  initialState,
   type CalcState,
   type Operator,
-} from "./calculator.js";
+} from "./calculator.logic.js";
 
 function makeState(overrides: Partial<CalcState> = {}): CalcState {
   return {
@@ -26,27 +28,27 @@ function makeState(overrides: Partial<CalcState> = {}): CalcState {
 
 describe("compute", () => {
   it("adds two numbers", () => {
-    expect(compute(125, "+", 7)).toBe(132);
+    assert.strictEqual(compute(125, "+", 7), 132);
   });
 
   it("subtracts two numbers", () => {
-    expect(compute(10, "−", 3)).toBe(7);
+    assert.strictEqual(compute(10, "−", 3), 7);
   });
 
   it("multiplies two numbers", () => {
-    expect(compute(4, "×", 7)).toBe(28);
+    assert.strictEqual(compute(4, "×", 7), 28);
   });
 
   it("divides two numbers", () => {
-    expect(compute(20, "÷", 4)).toBe(5);
+    assert.strictEqual(compute(20, "÷", 4), 5);
   });
 
   it("divides by zero returns Infinity", () => {
-    expect(compute(5, "÷", 0)).toBe(Infinity);
+    assert.strictEqual(compute(5, "÷", 0), Infinity);
   });
 
   it("handles negative results", () => {
-    expect(compute(3, "−", 8)).toBe(-5);
+    assert.strictEqual(compute(3, "−", 8), -5);
   });
 });
 
@@ -54,39 +56,39 @@ describe("compute", () => {
 
 describe("formatResult", () => {
   it("formats a simple integer", () => {
-    expect(formatResult(132)).toBe("132");
+    assert.strictEqual(formatResult(132), "132");
   });
 
   it("strips trailing zeros after decimal", () => {
-    expect(formatResult(10.0)).toBe("10");
+    assert.strictEqual(formatResult(10.0), "10");
   });
 
   it("handles 0.1 + 0.2 without floating-point noise", () => {
-    expect(formatResult(0.1 + 0.2)).toBe("0.3");
+    assert.strictEqual(formatResult(0.1 + 0.2), "0.3");
   });
 
   it("handles very small decimals", () => {
-    expect(formatResult(0.5)).toBe("0.5");
+    assert.strictEqual(formatResult(0.5), "0.5");
   });
 
   it("uses scientific notation for large numbers", () => {
-    expect(formatResult(1e12)).toBe("1e+12");
+    assert.strictEqual(formatResult(1e12), "1e+12");
   });
 
   it("returns Error for Infinity", () => {
-    expect(formatResult(Infinity)).toBe("Error");
+    assert.strictEqual(formatResult(Infinity), "Error");
   });
 
   it("returns Error for -Infinity", () => {
-    expect(formatResult(-Infinity)).toBe("Error");
+    assert.strictEqual(formatResult(-Infinity), "Error");
   });
 
   it("handles negative numbers", () => {
-    expect(formatResult(-7)).toBe("-7");
+    assert.strictEqual(formatResult(-7), "-7");
   });
 
   it("handles division producing decimals", () => {
-    expect(formatResult(1 / 3)).toBe("0.3333333333");
+    assert.strictEqual(formatResult(1 / 3), "0.3333333333");
   });
 });
 
@@ -96,53 +98,51 @@ describe("applyDigit", () => {
   it("shows a single digit", () => {
     const s = makeState();
     const next = applyDigit(s, "7");
-    expect(next.display).toBe("7");
+    assert.strictEqual(next.display, "7");
   });
 
   it("appends subsequent digits", () => {
     const s = makeState({ display: "7" });
     const next = applyDigit(s, "3");
-    expect(next.display).toBe("73");
+    assert.strictEqual(next.display, "73");
   });
 
   it("replaces display after result is shown", () => {
     const s = makeState({ display: "132", resultDisplayed: true });
     const next = applyDigit(s, "9");
-    expect(next.display).toBe("9");
-    expect(next.expression).toBe("");
+    assert.strictEqual(next.display, "9");
+    assert.strictEqual(next.expression, "");
   });
 
   it("ignores extra decimal points", () => {
     const s = makeState({ display: "5.6" });
     const next = applyDigit(s, ".");
-    expect(next.display).toBe("5.6");
+    assert.strictEqual(next.display, "5.6");
   });
 
   it("replaces leading zero with digit", () => {
     const s = makeState({ display: "0" });
     const next = applyDigit(s, "5");
-    expect(next.display).toBe("5");
+    assert.strictEqual(next.display, "5");
   });
 
   it("allows 0. from leading zero", () => {
     const s = makeState({ display: "0" });
     const next = applyDigit(s, ".");
-    expect(next.display).toBe("0.");
+    assert.strictEqual(next.display, "0.");
   });
 
   it("resets machine from error state on digit press", () => {
     const s = makeState({ display: "Error", isError: true });
     const next = applyDigit(s, "5");
-    expect(next.display).toBe("5");
-    expect(next.isError).toBe(false);
+    assert.strictEqual(next.display, "5");
+    assert.strictEqual(next.isError, false);
   });
 
-  it("guards against display overflow (15 char cap)", () => {
-    const long = "12345678901234"; // 14 chars
-    const s = makeState({ display: long });
+  it("allows appending up to the 15-character display cap", () => {
+    const s = makeState({ display: "12345678901234" }); // 14 chars
     const next = applyDigit(s, "5");
-    // 15 chars is the limit — this should be allowed
-    expect(next.display).toBe(long + "5");
+    assert.strictEqual(next.display, "123456789012345");
   });
 });
 
@@ -152,9 +152,9 @@ describe("applyOperator", () => {
   it("stores operand and sets operator", () => {
     const s = makeState({ display: "125" });
     const next = applyOperator(s, "+");
-    expect(next.storedOperand).toBe(125);
-    expect(next.pendingOperator).toBe("+");
-    expect(next.expression).toBe("125 +");
+    assert.strictEqual(next.storedOperand, 125);
+    assert.strictEqual(next.pendingOperator, "+");
+    assert.strictEqual(next.expression, "125 +");
   });
 
   it("preview-commits when operand and operator already pending", () => {
@@ -164,27 +164,27 @@ describe("applyOperator", () => {
       pendingOperator: "+" as Operator,
     });
     const next = applyOperator(s, "×");
-    expect(next.display).toBe("132"); // 125 + 7
-    expect(next.storedOperand).toBe(132);
-    expect(next.pendingOperator).toBe("×");
-    expect(next.expression).toBe("125 + 7");
+    assert.strictEqual(next.display, "132"); // 125 + 7
+    assert.strictEqual(next.storedOperand, 132);
+    assert.strictEqual(next.pendingOperator, "×");
+    assert.strictEqual(next.expression, "125 + 7");
   });
 
-  it("preview-commits with division by zero", () => {
+  it("preview-commits with division by zero produces Error", () => {
     const s = makeState({
       display: "0",
       storedOperand: 5,
       pendingOperator: "÷" as Operator,
     });
     const next = applyOperator(s, "+");
-    expect(next.display).toBe("Error");
-    expect(next.isError).toBe(true);
+    assert.strictEqual(next.display, "Error");
+    assert.strictEqual(next.isError, true);
   });
 
   it("no-op when in error state", () => {
     const s = makeState({ display: "Error", isError: true });
     const next = applyOperator(s, "+");
-    expect(next).toBe(s);
+    assert.deepStrictEqual(next, s);
   });
 });
 
@@ -198,9 +198,9 @@ describe("applyEquals", () => {
       pendingOperator: "+" as Operator,
     });
     const next = applyEquals(s);
-    expect(next.display).toBe("132");
-    expect(next.expression).toBe("125 + 7 =");
-    expect(next.resultDisplayed).toBe(true);
+    assert.strictEqual(next.display, "132");
+    assert.strictEqual(next.expression, "125 + 7 =");
+    assert.strictEqual(next.resultDisplayed, true);
   });
 
   it("commits subtraction", () => {
@@ -210,7 +210,7 @@ describe("applyEquals", () => {
       pendingOperator: "−" as Operator,
     });
     const next = applyEquals(s);
-    expect(next.display).toBe("7");
+    assert.strictEqual(next.display, "7");
   });
 
   it("commits multiplication", () => {
@@ -220,7 +220,7 @@ describe("applyEquals", () => {
       pendingOperator: "×" as Operator,
     });
     const next = applyEquals(s);
-    expect(next.display).toBe("28");
+    assert.strictEqual(next.display, "28");
   });
 
   it("commits division", () => {
@@ -230,19 +230,19 @@ describe("applyEquals", () => {
       pendingOperator: "÷" as Operator,
     });
     const next = applyEquals(s);
-    expect(next.display).toBe("5");
+    assert.strictEqual(next.display, "5");
   });
 
   it("no-op when no operator is pending", () => {
     const s = makeState({ display: "42" });
     const next = applyEquals(s);
-    expect(next).toBe(s);
+    assert.deepStrictEqual(next, s);
   });
 
   it("no-op when in error state", () => {
     const s = makeState({ display: "Error", isError: true });
     const next = applyEquals(s);
-    expect(next).toBe(s);
+    assert.deepStrictEqual(next, s);
   });
 
   it("division by zero produces Error", () => {
@@ -252,11 +252,11 @@ describe("applyEquals", () => {
       pendingOperator: "÷" as Operator,
     });
     const next = applyEquals(s);
-    expect(next.display).toBe("Error");
-    expect(next.isError).toBe(true);
+    assert.strictEqual(next.display, "Error");
+    assert.strictEqual(next.isError, true);
   });
 
-  it("chains: second equals repeats last operation", () => {
+  it("chains: second equals repeats last operation using stored result", () => {
     const s = makeState({
       display: "3",
       storedOperand: 132,
@@ -264,7 +264,7 @@ describe("applyEquals", () => {
       resultDisplayed: true,
     });
     const next = applyEquals(s);
-    expect(next.display).toBe("135"); // 132 + 3
+    assert.strictEqual(next.display, "135"); // 132 + 3
   });
 });
 
@@ -280,27 +280,31 @@ describe("applyClear", () => {
       resultDisplayed: true,
     });
     const next = applyClear();
-    expect(next.display).toBe("0");
-    expect(next.expression).toBe("");
-    expect(next.storedOperand).toBeNull();
-    expect(next.pendingOperator).toBeNull();
-    expect(next.resultDisplayed).toBe(false);
+    assert.strictEqual(next.display, "0");
+    assert.strictEqual(next.expression, "");
+    assert.strictEqual(next.storedOperand, null);
+    assert.strictEqual(next.pendingOperator, null);
+    assert.strictEqual(next.resultDisplayed, false);
+    assert.strictEqual(next.isError, false);
   });
 });
 
-// ─── Backspace (inline via applyDigit inverse) ───────────────────────────────
+// ─── Backspace ───────────────────────────────────────────────────────────────
 
 describe("backspace behavior", () => {
   it("removes last character from display", () => {
     const s = makeState({ display: "125" });
     const next = { ...s, display: s.display.slice(0, -1) };
-    expect(next.display).toBe("12");
+    assert.strictEqual(next.display, "12");
   });
 
-  it("reduces single digit to zero", () => {
+  it("reduces single character to zero", () => {
     const s = makeState({ display: "1" });
-    const next = { ...s, display: s.display.length <= 1 ? "0" : s.display.slice(0, -1) };
-    expect(next.display).toBe("0");
+    const next =
+      s.display.length <= 1
+        ? { ...s, display: "0" }
+        : { ...s, display: s.display.slice(0, -1) };
+    assert.strictEqual(next.display, "0");
   });
 });
 
@@ -310,12 +314,12 @@ describe("percent behavior", () => {
   it("divides display value by 100", () => {
     const s = makeState({ display: "50" });
     const result = parseFloat(s.display) / 100;
-    expect(result).toBe(0.5);
+    assert.strictEqual(result, 0.5);
   });
 
-  it("does not apply to error state", () => {
+  it("does not apply when in error state", () => {
     const s = makeState({ display: "Error", isError: true });
-    expect(s.isError).toBe(true);
+    assert.strictEqual(s.isError, true);
   });
 });
 
@@ -328,7 +332,7 @@ describe("sign toggle behavior", () => {
       ...s,
       display: s.display.startsWith("-") ? s.display.slice(1) : "-" + s.display,
     };
-    expect(next.display).toBe("-7");
+    assert.strictEqual(next.display, "-7");
   });
 
   it("removes negation from negative display", () => {
@@ -337,32 +341,38 @@ describe("sign toggle behavior", () => {
       ...s,
       display: s.display.startsWith("-") ? s.display.slice(1) : "-" + s.display,
     };
-    expect(next.display).toBe("7");
+    assert.strictEqual(next.display, "7");
   });
 
   it("no-op on zero", () => {
     const s = makeState({ display: "0" });
-    const next = s.display === "0" ? s : {
-      ...s,
-      display: s.display.startsWith("-") ? s.display.slice(1) : "-" + s.display,
-    };
-    expect(next.display).toBe("0");
+    const next =
+      s.display === "0"
+        ? s
+        : {
+            ...s,
+            display: s.display.startsWith("-")
+              ? s.display.slice(1)
+              : "-" + s.display,
+          };
+    assert.strictEqual(next.display, "0");
   });
 });
 
-// ─── Expression truncation ────────────────────────────────────────────────────
+// ─── Expression truncation ───────────────────────────────────────────────────
 
-describe("expression truncation (30 char cap)", () => {
-  it("truncates from left when expression exceeds 30 chars", () => {
+describe("expression truncation", () => {
+  it("truncates from left when expression exceeds 30 characters", () => {
     const long = "12345678901234567890123456789012"; // 32 chars
-    const truncated = long.length > 30 ? "…" + long.slice(long.length - 29) : long;
-    expect(truncated.length).toBe(30);
-    expect(truncated.startsWith("…")).toBe(true);
+    const truncated =
+      long.length > 30 ? "…" + long.slice(long.length - 29) : long;
+    assert.strictEqual(truncated.length, 30);
+    assert.ok(truncated.startsWith("…"));
   });
 
   it("leaves short expressions unchanged", () => {
     const expr = "125 + 7";
     const truncated = expr.length > 30 ? "…" + expr.slice(expr.length - 29) : expr;
-    expect(truncated).toBe("125 + 7");
+    assert.strictEqual(truncated, "125 + 7");
   });
 });

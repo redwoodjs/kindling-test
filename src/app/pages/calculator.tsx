@@ -1,204 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  applyClear,
+  applyDigit,
+  applyEquals,
+  applyOperator,
+  formatResult,
+  initialState,
+  type CalcState,
+  type Operator,
+} from "./calculator.logic.js";
 import styles from "./calculator.module.css";
-
-// ─── Types ───────────────────────────────────────────────────────────────────
-
-export type Operator = "+" | "−" | "×" | "÷";
-
-export type CalcState = {
-  display: string;
-  expression: string;
-  storedOperand: number | null;
-  pendingOperator: Operator | null;
-  resultDisplayed: boolean;
-  isError: boolean;
-};
-
-// ─── Pure calculator logic ───────────────────────────────────────────────────
-
-const MAX_DISPLAY_CHARS = 15;
-const MAX_EXPRESSION_CHARS = 30;
-
-export function compute(stored: number, op: Operator, current: number): number {
-  switch (op) {
-    case "+":
-      return stored + current;
-    case "−":
-      return stored - current;
-    case "×":
-      return stored * current;
-    case "÷":
-      return stored / current;
-  }
-}
-
-export function formatResult(n: number): string {
-  if (!isFinite(n)) return "Error";
-  if (Math.abs(n) >= 1e10) return n.toExponential(5);
-  // Round to 10 significant digits then strip trailing zeros
-  const rounded = parseFloat(n.toPrecision(10));
-  const fixed = rounded.toString();
-  // If it contains a decimal point, strip unnecessary trailing zeros
-  if (fixed.includes(".")) {
-    return fixed.replace(/\.?0+$/, "");
-  }
-  return fixed;
-}
-
-function isErrorState(n: number): boolean {
-  return !isFinite(n);
-}
-
-// Apply a digit press, returning the next state (pure, no React)
-export function applyDigit(state: CalcState, digit: string): CalcState {
-  const raw = digit === "." ? "0." : digit;
-
-  if (state.isError) {
-    // Machine is in error state — next digit resets everything
-    return {
-      display: raw,
-      expression: "",
-      storedOperand: null,
-      pendingOperator: null,
-      resultDisplayed: false,
-      isError: false,
-    };
-  }
-
-  if (state.resultDisplayed) {
-    // Pressing a digit after "=" starts a fresh calculation
-    return {
-      display: raw,
-      expression: "",
-      storedOperand: null,
-      pendingOperator: null,
-      resultDisplayed: false,
-      isError: false,
-    };
-  }
-
-  const current = state.display;
-
-  // Guard: no double decimal
-  if (digit === "." && current.includes(".")) {
-    return state;
-  }
-
-  // Guard: display overflow
-  const next = current === "0" && digit !== "."
-    ? digit
-    : current + digit;
-  if (next.length > MAX_DISPLAY_CHARS) {
-    return state;
-  }
-
-  return { ...state, display: next };
-}
-
-// Apply an operator press, returning the next state
-export function applyOperator(state: CalcState, op: Operator): CalcState {
-  if (state.isError) return state;
-
-  const currentValue = parseFloat(state.display);
-
-  // Commit a live preview if we already have a stored operand
-  if (state.storedOperand !== null && state.pendingOperator !== null) {
-    const result = compute(state.storedOperand, state.pendingOperator, currentValue);
-    if (isErrorState(result)) {
-      return {
-        display: "Error",
-        expression: "",
-        storedOperand: null,
-        pendingOperator: null,
-        resultDisplayed: false,
-        isError: true,
-      };
-    }
-    const displayStr = formatResult(result);
-    const expr = truncateExpression(
-      `${formatResult(state.storedOperand)} ${state.pendingOperator} ${formatResult(currentValue)}`,
-    );
-    return {
-      display: displayStr,
-      expression: expr,
-      storedOperand: result,
-      pendingOperator: op,
-      resultDisplayed: false,
-      isError: false,
-    };
-  }
-
-  // No operand yet — just store it
-  return {
-    display: formatResult(currentValue),
-    expression: truncateExpression(`${formatResult(currentValue)} ${op}`),
-    storedOperand: currentValue,
-    pendingOperator: op,
-    resultDisplayed: false,
-    isError: false,
-  };
-}
-
-// Commit the pending calculation on "="
-export function applyEquals(state: CalcState): CalcState {
-  if (state.isError) return state;
-  if (state.storedOperand === null || state.pendingOperator === null) {
-    // Nothing pending — no-op
-    return state;
-  }
-
-  const currentValue = parseFloat(state.display);
-  const result = compute(state.storedOperand, state.pendingOperator, currentValue);
-
-  if (isErrorState(result)) {
-    return {
-      display: "Error",
-      expression: "",
-      storedOperand: null,
-      pendingOperator: null,
-      resultDisplayed: false,
-      isError: true,
-    };
-  }
-
-  const expr = truncateExpression(
-    `${formatResult(state.storedOperand)} ${state.pendingOperator} ${formatResult(currentValue)} =`,
-  );
-
-  return {
-    display: formatResult(result),
-    expression: expr,
-    storedOperand: result,
-    pendingOperator: null,
-    resultDisplayed: true,
-    isError: false,
-  };
-}
-
-// Clear all state
-export function applyClear(): CalcState {
-  return initialState();
-}
-
-function initialState(): CalcState {
-  return {
-    display: "0",
-    expression: "",
-    storedOperand: null,
-    pendingOperator: null,
-    resultDisplayed: false,
-    isError: false,
-  };
-}
-
-function truncateExpression(expr: string): string {
-  if (expr.length > MAX_EXPRESSION_CHARS) {
-    return "…" + expr.slice(expr.length - (MAX_EXPRESSION_CHARS - 1));
-  }
-  return expr;
-}
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -210,17 +23,11 @@ const OPERATORS: { key: string; display: string; ariaLabel: string }[] = [
 ];
 
 const DIGITS = ["7", "8", "9", "4", "5", "6", "1", "2", "3"];
-const BOTTOM_ROW: { label: string; className: string; ariaLabel: string }[] = [
-  { label: "+/−", className: styles.sign, ariaLabel: "Toggle sign" },
-  { label: "0", className: styles.digitDouble, ariaLabel: "Zero" },
-  { label: ".", className: styles.decimal, ariaLabel: "Decimal point" },
-];
 
 export function Calculator() {
   const [state, setState] = useState<CalcState>(initialState);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Focus the container on mount so keyboard events are captured immediately
   useEffect(() => {
     containerRef.current?.focus();
   }, []);
@@ -271,7 +78,7 @@ export function Calculator() {
     });
   }, []);
 
-  // Keyboard handler — attached to the focusable container
+  // Keyboard handler
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
       const key = e.key;
@@ -324,17 +131,22 @@ export function Calculator() {
         return;
       }
 
-      // Shift+= produces "+" in Shift mode, but we handle it via the shift key state
       if (key === "+" && e.shiftKey) {
         e.preventDefault();
         handleSignToggle();
         return;
       }
     },
-    [handleDigit, handleOperator, handleEquals, handleBackspace, handleClear, handlePercent, handleSignToggle],
+    [
+      handleDigit,
+      handleOperator,
+      handleEquals,
+      handleBackspace,
+      handleClear,
+      handlePercent,
+      handleSignToggle,
+    ],
   );
-
-  const displayValue = state.display;
 
   return (
     <div className={styles.page}>
@@ -354,7 +166,7 @@ export function Calculator() {
           {/* Display */}
           <div className={styles.displayArea} aria-live="polite" role="status">
             <div className={styles.expressionLine}>{state.expression}</div>
-            <div className={styles.resultLine}>{displayValue}</div>
+            <div className={styles.resultLine}>{state.display}</div>
           </div>
 
           {/* Button grid */}
