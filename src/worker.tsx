@@ -4,6 +4,7 @@ import { defineApp } from "rwsdk/worker";
 import { Document } from "@/app/document";
 import { setCommonHeaders } from "@/app/headers";
 import { Home } from "@/app/pages/home";
+import { Calculator } from "@/app/pages/calculator";
 import { statusHandler } from "@/app/status";
 import { healthHandler } from "@/app/pages/health";
 import { pingHandler } from "@/lib/ping";
@@ -19,5 +20,8 @@ export default defineApp([
   route("/status", statusHandler),
   route("/health", { get: healthHandler }),
   route("/ping", { get: pingHandler }),
-  render(Document, [route("/", Home)]),
+  render(Document, [
+    route("/", Home),
+    route("/calculator", Calculator),
+  ]),
 ]);

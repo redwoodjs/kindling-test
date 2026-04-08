@@ -1,0 +1,182 @@
+/* ─── Variables (extend the existing design system) ──────────────────────── */
+
+.page {
+  min-height: 100vh;
+  background-color: var(--color-baige);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3rem 1rem;
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.pageTitle {
+  font-family: var(--font-playfair);
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: var(--text-color);
+  margin: 0;
+}
+
+/* ─── Calculator card ─────────────────────────────────────────────────────── */
+
+.main {
+  width: 100%;
+  max-width: 420px;
+}
+
+.container {
+  background-color: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  outline: none; /* focus ring handled via :focus-visible */
+}
+
+/* ─── Display area ───────────────────────────────────────────────────────── */
+
+.displayArea {
+  background-color: var(--color-baige);
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+  min-height: 5.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+}
+
+.expressionLine {
+  font-family: var(--font-noto);
+  font-size: 0.875rem;
+  color: #888;
+  text-align: right;
+  min-height: 1.25rem;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.resultLine {
+  font-family: var(--font-playfair);
+  font-size: 3rem;
+  font-weight: bold;
+  color: var(--text-color);
+  text-align: right;
+  overflow: hidden;
+  white-space: nowrap;
+  line-height: 1.1;
+}
+
+/* ─── Button grid ────────────────────────────────────────────────────────── */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.625rem;
+}
+
+/* Base button */
+.btn {
+  font-family: var(--font-noto);
+  font-size: 1.375rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 0.625rem;
+  padding: 0.875rem 0;
+  cursor: pointer;
+  transition: background-color 80ms ease, transform 60ms ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Press feedback */
+.btn:active {
+  transform: scale(0.96);
+}
+
+/* Focus ring */
+.btn:focus-visible,
+.container:focus-visible {
+  outline: 2px solid var(--color-orange);
+  outline-offset: 2px;
+}
+
+/* ─── Button categories ───────────────────────────────────────────────────── */
+
+/* Utility: C, ⌫, % */
+.utility {
+  background-color: #e8e0cc;
+  color: var(--text-color);
+}
+
+.utility:hover {
+  background-color: #ddd5bc;
+}
+
+/* Digit: 0–9 */
+.digit {
+  background-color: var(--color-baige);
+  color: var(--text-color);
+  border: 1px solid #ddd5bc;
+}
+
+.digit:hover {
+  background-color: #ede5ce;
+}
+
+/* Double-width zero */
+.digitDouble {
+  grid-column: span 1;
+  background-color: var(--color-baige);
+  color: var(--text-color);
+  border: 1px solid #ddd5bc;
+}
+
+.digitDouble:hover {
+  background-color: #ede5ce;
+}
+
+/* Operator: +, −, ×, ÷ */
+.operator {
+  background-color: var(--color-orange);
+  color: #fff;
+}
+
+.operator:hover {
+  background-color: #e06330;
+}
+
+/* Equals: = */
+.equals {
+  background-color: var(--color-orange-light);
+  color: var(--text-color);
+}
+
+.equals:hover {
+  background-color: #f5a030;
+}
+
+/* Sign toggle: +/− */
+.sign {
+  background-color: #e8e0cc;
+  color: var(--text-color);
+}
+
+.sign:hover {
+  background-color: #ddd5bc;
+}
+
+/* Decimal: . */
+.decimal {
+  background-color: var(--color-baige);
+  color: var(--text-color);
+  border: 1px solid #ddd5bc;
+}
+
+.decimal:hover {
+  background-color: #ede5ce;
+}
