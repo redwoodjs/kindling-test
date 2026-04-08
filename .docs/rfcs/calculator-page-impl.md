@@ -18,7 +18,8 @@ The component is the sole occupant of its page, centered, capped at 420px, fully
 
 | Action | File |
 |---|---|
-| [NEW] | `src/app/pages/calculator.tsx` — calculator page component |
+| [NEW] | `src/app/pages/calculator.logic.ts` — pure calculator functions (compute, formatResult, applyDigit, applyOperator, applyEquals, applyClear, initialState) isolated from React |
+| [NEW] | `src/app/pages/calculator.tsx` — `"use client"` React component that imports from calculator.logic.ts |
 | [NEW] | `src/app/pages/calculator.module.css` — all styles, co-located |
 | [NEW] | `src/app/pages/calculator.test.ts` — behavioral unit tests |
 | [MODIFY] | `src/worker.tsx` — add `route("/calculator", Calculator)` inside `render()` |
@@ -214,12 +215,13 @@ Division by zero and overflow both produce `Infinity` or `-Infinity` from JavaSc
 
 ## Tasks
 
-- [ ] Create `src/app/pages/calculator.tsx` with `"use client"` at the top; implement the full calculator component (state, keyboard listeners, button handlers)
-- [ ] Create `src/app/pages/calculator.module.css` with all styles matching the design palette
-- [ ] Add `route("/calculator", Calculator)` inside `render(Document, [...])` in `src/worker.tsx`
-- [ ] Create `src/app/pages/calculator.test.ts` covering all Gherkin scenarios above
-- [ ] Run `npm run types` and `npm run test`; address any failures
-- [ ] Verify the page renders at `/calculator` with `npm run dev` (live verification)
+- [x] Create `src/app/pages/calculator.logic.ts` — pure functions isolated from React for testability (compute, formatResult, applyDigit, applyOperator, applyEquals, applyClear, initialState)
+- [x] Create `src/app/pages/calculator.tsx` with `"use client"` at the top; imports from calculator.logic.ts; full component (state, keyboard listeners, button handlers)
+- [x] Create `src/app/pages/calculator.module.css` with all styles matching the design palette
+- [x] Add `route("/calculator", Calculator)` inside `render(Document, [...])` in `src/worker.tsx`
+- [x] Create `src/app/pages/calculator.test.ts` covering all Gherkin scenarios above
+- [x] Run `npm run types` and `npm run test`; address any failures
+- [x] Verify the page renders at `/calculator` with `npm run dev` (live verification: server returned full HTML with button grid and initial "0" display)
 
 ---
 
