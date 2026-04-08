@@ -10,10 +10,8 @@ import {
 } from "../../lib/calculator.js";
 
 // ---------------------------------------------------------------------------
-// Types
+// Types (DownPaymentMode and MortgageResults re-exported from lib)
 // ---------------------------------------------------------------------------
-
-type DownPaymentMode = "amount" | "percent";
 
 interface MortgageResults {
   monthlyPI: number;
@@ -26,85 +24,6 @@ interface MortgageResults {
   hasError: boolean;
   errorField?: "homePrice" | "downPayment" | "interestRate" | "loanTerm";
   errorMessage?: string;
-}
-
-// ---------------------------------------------------------------------------
-// Parsing
-// ---------------------------------------------------------------------------
-
-/** Strip $, commas, whitespace and parse as float. Returns NaN on failure. */
-function parseCurrency(raw: string): number {
-  const cleaned = raw.replace(/[$,\s]/g, "");
-  return cleaned === "" ? NaN : parseFloat(cleaned);
-}
-
-/** Format a float as a USD currency string with commas and 2dp. */
-function formatCurrency(value: number): string {
-  const rounded = Math.round(value * 100) / 100;
-  const fixed = rounded.toFixed(2);
-  return "$" + fixed.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
-
-/** Format a float as an integer string with commas (no decimal). */
-function formatInteger(value: number): string {
-  return "$" + Math.round(value).toLocaleString("en-US");
-}
-
-// ---------------------------------------------------------------------------
-// Amortization
-// ---------------------------------------------------------------------------
-
-/**
- * Standard fixed-payment amortization:
- *   M = P * [r(1+r)^n] / [(1+r)^n - 1]
- *
- * P = principal (price - down payment)
- * r = monthly rate (annual % / 12 / 100)
- * n = total months (years * 12)
- *
- * Returns the monthly PI payment rounded to cents. Returns NaN when inputs
- * are invalid (zero term) or when principal is 0 (returns 0).
- */
-function calculateMonthlyPI(
-  principal: number,
-  annualRatePercent: number,
-  termYears: number
-): number {
-  if (principal <= 0) return 0;
-  if (termYears <= 0) return NaN;
-  if (annualRatePercent <= 0) {
-    // 0% interest — simple equal distribution
-    return Math.round((principal / (termYears * 12)) * 100) / 100;
-  }
-  const r = annualRatePercent / 100 / 12;
-  const n = termYears * 12;
-  const factor = Math.pow(1 + r, n);
-  const payment = principal * ((r * factor) / (factor - 1));
-  return Math.round(payment * 100) / 100;
-}
-
-// ---------------------------------------------------------------------------
-// Core calculation
-// ---------------------------------------------------------------------------
-
-function computeMortgage(inputs: {
-  homePrice: string;
-  downPayment: string;
-  downPaymentMode: DownPaymentMode;
-  interestRate: string;
-  loanTermYears: number;
-  propertyTax: string;
-  insurance: string;
-}): MortgageResults {
-  return calcComputeMortgage({
-    homePriceRaw: inputs.homePrice,
-    dpRaw: inputs.downPayment,
-    dpMode: inputs.downPaymentMode,
-    interestRateRaw: inputs.interestRate,
-    loanTermYears: inputs.loanTermYears,
-    taxRaw: inputs.propertyTax,
-    insuranceRaw: inputs.insurance,
-  });
 }
 
 // ---------------------------------------------------------------------------

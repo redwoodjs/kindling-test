@@ -217,7 +217,7 @@ describe("computeMortgage — incomplete required inputs", () => {
     })
     assert.strictEqual(result.hasError, true)
     assert.strictEqual(result.errorField, "homePrice")
-    assert.ok(result.errorMessage?.length > 0)
+    assert.ok(result.errorMessage && result.errorMessage.length > 0)
   })
 
   it("returns hasError=true when home price is empty (NaN)", () => {
@@ -260,7 +260,7 @@ describe("computeMortgage — incomplete required inputs", () => {
     })
     assert.strictEqual(result.hasError, true)
     assert.strictEqual(result.errorField, "downPayment")
-    assert.ok(result.errorMessage?.length > 0)
+    assert.ok(result.errorMessage && result.errorMessage.length > 0)
   })
 
   it("returns hasError=true when down payment amount is negative", () => {
