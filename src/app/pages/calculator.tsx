@@ -125,6 +125,14 @@ function computeMortgage(inputs: {
   }
   if (downPayment !== "" && !Number.isNaN(dpRaw)) {
     if (downPaymentMode === "amount") {
+      if (!Number.isNaN(hp) && dpRaw < 0) {
+        return {
+          monthlyPI: 0, monthlyTax: 0, monthlyInsurance: 0, monthlyTotal: 0,
+          totalCost: 0, totalInterest: 0, principal: 0, hasError: true,
+          errorField: "downPayment",
+          errorMessage: "Down payment cannot be negative.",
+        };
+      }
       if (!Number.isNaN(hp) && dpRaw > hp) {
         return {
           monthlyPI: 0, monthlyTax: 0, monthlyInsurance: 0, monthlyTotal: 0,
@@ -508,7 +516,7 @@ export const Calculator = () => {
                   type="text"
                   inputMode="decimal"
                   className={`${styles.input} ${styles.inputWithSuffix} ${results.errorField === "interestRate" ? styles.inputError : ""}`}
-                  value={focusedField === "interestRate" ? interestRate : interestRate}
+                  value={interestRate}
                   placeholder="e.g. 7"
                   onChange={handleInterestRateChange}
                   onFocus={() => handleFocus("interestRate")}
