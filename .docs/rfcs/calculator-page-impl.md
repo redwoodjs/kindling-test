@@ -143,12 +143,19 @@ Feature: Calculator
     When the user presses "Backspace"
     Then the expression is already empty (no-op)
 
+    When the user presses "Shift+="
+    Then the current operand is negated
+
+    Note: The `n` key shortcut for negate is excluded because `n` is a standard
+    letter key that would intercept natural text input; `Shift+=` is the
+    unambiguous alternative and is the sole supported shortcut for this action.
+
   Rule: Accessibility
     When any button is focused
     Then it has a visible focus ring
     And its aria-label describes its action
     When the result changes
-    Then the display has role="display" and aria-live="polite"
+    Then the display has role="status" and aria-live="polite"
 ```
 
 ---
@@ -194,19 +201,20 @@ Division by zero and overflow both produce `Infinity` or `-Infinity` from JavaSc
 
 ## Invariants & Constraints
 
-1. The expression line is capped at 30 characters in the display; if the formatted expression exceeds this, the result line still shows the full value.
-2. The display string never exceeds 15 characters; long results use scientific notation.
-3. No `eval`, `new Function`, or `innerHTML` — all rendering is React JSX.
-4. `aria-live="polite"` is set on the display so screen readers announce result changes without interrupting.
-5. The component uses `useRef` for the keyboard listener cleanup and `useEffect` for focus-on-mount.
-6. The component uses `useCallback` for all event handlers to avoid unnecessary re-renders.
-7. The CSS class naming follows the established convention: kebab-case in the `.module.css` file, accessed as `styles.container` etc. in JSX.
+1. The source file **must** start with `"use client"` — the component uses `useState` and requires client-side rendering. Without it, React's SSR pipeline will not hydrate the state correctly.
+2. The expression line is capped at 30 characters in the display; if the formatted expression exceeds this, the result line still shows the full value.
+3. The display string never exceeds 15 characters; long results use scientific notation.
+4. No `eval`, `new Function`, or `innerHTML` — all rendering is React JSX.
+5. The display element uses `role="status"` (not a non-standard role) paired with `aria-live="polite"` so assistive technology announces result changes without interrupting speech.
+6. The component uses `useRef` for the keyboard listener cleanup and `useEffect` for focus-on-mount.
+7. The component uses `useCallback` for all event handlers to avoid unnecessary re-renders.
+8. The CSS class naming follows the established convention: kebab-case in the `.module.css` file, accessed as `styles.container` etc. in JSX.
 
 ---
 
 ## Tasks
 
-- [ ] Create `src/app/pages/calculator.tsx` with the full calculator component
+- [ ] Create `src/app/pages/calculator.tsx` with `"use client"` at the top; implement the full calculator component (state, keyboard listeners, button handlers)
 - [ ] Create `src/app/pages/calculator.module.css` with all styles matching the design palette
 - [ ] Add `route("/calculator", Calculator)` inside `render(Document, [...])` in `src/worker.tsx`
 - [ ] Create `src/app/pages/calculator.test.ts` covering all Gherkin scenarios above
