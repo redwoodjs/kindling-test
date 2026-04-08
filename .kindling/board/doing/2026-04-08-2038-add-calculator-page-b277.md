@@ -1,0 +1,19 @@
+---
+status: doing
+labels: []
+created: "2026-04-08T18:39:24.207Z"
+started: "2026-04-08T18:39:24.207Z"
+completed: null
+github-pr: null
+github-comments: true
+no-pr: false
+depends-on: []
+---
+
+## Brief
+
+Add Calculator Page
+
+## Checklist
+
+## Progress Log
