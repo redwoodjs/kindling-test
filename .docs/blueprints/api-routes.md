@@ -41,3 +41,14 @@ Content-Type: application/json
 ## GET /
 
 React SSR homepage. Rendered via rwsdk's `render(Document, [...])` pipeline.
+
+---
+
+## Library Utilities (`src/lib/`)
+
+Simple, stateless utility functions (pure logic, no HTTP routing) live in `src/lib/`. This directory is distinct from route handler modules in `src/app/pages/` and from page components in `src/app/pages/`.
+
+### Conventions
+- One module per concern (following the `math.ts` pattern — `add`, `subtract`, `multiply` in one file)
+- Exported functions with clear names; no factory or handler wrapper needed for stateless utilities
+- TypeScript throughout; no `.js` extension in source files
