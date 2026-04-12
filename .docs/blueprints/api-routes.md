@@ -38,6 +38,29 @@ Content-Type: application/json
 
 ---
 
+## GET /greeting
+
+**Purpose**: Simple greeting endpoint returning a static "hello world" message.
+
+**Authentication**: None. Publicly accessible by design.
+
+**Method restriction**: GET only. All other methods return `405 Method Not Allowed` (enforced by rwsdk's `MethodHandlers` built-in).
+
+### Response
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"greeting": "hello world"}
+```
+
+**Handler location**: `src/lib/greeting.ts`. Follows the plain `Response` handler pattern — extracted to `src/lib/` for independent testability (no Worker runtime required). Registered before `render()` in `src/worker.tsx` to bypass the SSR pipeline.
+
+**Side effects**: None. Idempotent.
+
+---
+
 ## GET /
 
 React SSR homepage. Rendered via rwsdk's `render(Document, [...])` pipeline.
