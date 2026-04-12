@@ -38,6 +38,27 @@ Content-Type: application/json
 
 ---
 
+## GET /greeting
+
+**Purpose**: Simple smoke test endpoint returning a known string.
+
+**Authentication**: None. Publicly accessible by design.
+
+**Method restriction**: GET only.
+
+### Response
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"greeting": "hello world"}
+```
+
+**Side effects**: None. Idempotent.
+
+---
+
 ## GET /
 
 React SSR homepage. Rendered via rwsdk's `render(Document, [...])` pipeline.
