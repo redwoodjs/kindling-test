@@ -1,0 +1,33 @@
+---
+status: doing
+labels: []
+created: "2026-04-12T06:37:59.665Z"
+started: "2026-04-12T06:37:59.665Z"
+completed: null
+github-pr: null
+github-comments: true
+no-pr: false
+depends-on: []
+---
+
+## Brief
+
+SDK invocation failed: claude binary not found on PATH. Install Claude
+
+## Checklist
+
+## Progress Log
+
+
+
+
+
+
+
+- [2026-04-12T06:42:39.129Z] [harness] Auditing Developer output...
+- [2026-04-12T06:41:24.677Z] [harness] Auditor: REVISE — re-dispatching Developer (revision 1)...
+- [2026-04-12T06:40:06.962Z] [harness] Auditing Developer output...
+- [2026-04-12T06:38:50.628Z] [harness] Compiling plan for a greeting function task. Using the fast protocol — well-understood change, no RFC needed. Dispatching Developer to implement.
+- [2026-04-12T06:38:50.626Z] [harness] Plan ready: 4 phases, fast protocol. Task force: Developer.
+- [2026-04-12T06:38:31.821Z] [harness] Planning approach -- reading your brief, selecting protocol, assembling task force...
+- [2026-04-12T06:38:00.482Z] [harness] Understanding your codebase so agents have architectural context...
