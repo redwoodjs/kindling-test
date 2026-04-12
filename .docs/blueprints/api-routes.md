@@ -4,6 +4,27 @@ Server-side HTTP routes exposed by the Cloudflare Worker. All routes are registe
 
 ---
 
+## GET /greeting
+
+**Purpose**: Simple smoke test confirming the API is responsive and returns a known string value.
+
+**Authentication**: None. Publicly accessible by design.
+
+**Method restriction**: GET only. All other methods return `405 Method Not Allowed` (enforced by rwsdk's `MethodHandlers` built-in).
+
+### Response
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"message":"hello world"}
+```
+
+**Side effects**: None. Idempotent.
+
+---
+
 ## GET /health
 
 **Purpose**: Liveness check for load balancers, uptime monitors, and operational dashboards.
