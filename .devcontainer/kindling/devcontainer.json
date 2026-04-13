@@ -7,9 +7,16 @@
     },
     "ghcr.io/anthropics/devcontainer-features/claude-code:1": {},
     "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
     "./kindling-agent-ready": {}
   },
-  "postCreateCommand": "sudo env \"PATH=$PATH\" npm install -g tsx @openai/codex",
+  "runArgs": [
+    "--security-opt",
+    "seccomp=unconfined",
+    "--network",
+    "host"
+  ],
+  "postCreateCommand": "bash .devcontainer/kindling/postCreate.sh",
   "customizations": {
     "vscode": {
       "extensions": [
