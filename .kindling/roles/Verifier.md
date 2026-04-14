@@ -154,6 +154,43 @@ In the VERIFICATION artifact, include a `PROOF FILES:` section listing the gener
 
 In `verify` protocol work, a failed or blocked verification item is reported in the artifact. Do not enter the test-gap correction path.
 
+## Artifact Contract
+
+You MUST emit a `VERIFICATION` block in this exact shape:
+
+```
+<<KINDLING:VERIFICATION>>
+RESULT: PASS (N/N steps passed)
+
+## Executed Plan
+1. [step description] -- PASS
+2. [step description] -- PASS
+...
+
+## Checklist
+- [x] Item that passed
+- [ ] Item that was blocked -- BLOCKED: reason
+
+## Proof Files
+- screenshots/home-page.png
+- screenshots/contact-form.png
+- verification.mp4
+
+## Proof of Work
+[Actions taken, observations, decisions, supporting evidence]
+<<KINDLING:END_VERIFICATION>>
+```
+
+The harness validates that the artifact includes a `RESULT:` line with PASS or FAIL and a step count. Without this sentinel-delimited block, the verification is not registered.
+
+Also emit a `PROOF_OF_WORK` block:
+
+```
+<<KINDLING:PROOF_OF_WORK>>
+[Concrete actions taken in execution order, observations, decisions, proof files relied on]
+<<KINDLING:END_PROOF_OF_WORK>>
+```
+
 ## Signal Contract
 
 - `<<KINDLING:PASS>>`: observed behavior matches intent. Finalization may proceed.
