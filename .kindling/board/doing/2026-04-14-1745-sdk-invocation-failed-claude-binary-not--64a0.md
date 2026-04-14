@@ -21,6 +21,8 @@ SDK invocation failed: claude binary not found on PATH. Install Claude
 
 
 
+
+- [2026-04-14T17:49:15.897Z] [harness] Auditor: skipped
 - [2026-04-14T17:48:34.626Z] [harness] Dispatching Developer for Priming phase to understand project conventions before implementing the greeting function. Fast protocol: 4 phases total, no review gates.
 - [2026-04-14T17:48:34.622Z] [harness] Plan ready: 4 phases, fast protocol. Task force: Developer.
 - [2026-04-14T17:48:20.856Z] [harness] Planning approach -- reading your brief, selecting protocol, assembling task force...
