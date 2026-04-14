@@ -1,17 +1,4 @@
 #!/usr/bin/env node
-// context(justinvdm, 2026-04-14): Playwright eval server for verification.
-// Holds a persistent browser page and accepts Playwright code via HTTP POST.
-// Replaces Playwright MCP for browser-based verification — sub-second round-trips
-// instead of 5-15s MCP overhead per tool call.
-//
-// Usage:
-//   node playwright-eval-server.mjs [--port 9222] [--video-dir /tmp/video] [--headless]
-//
-// The Verifier interacts via curl:
-//   curl -s -X POST -d 'await page.goto("http://localhost:5173"); return page.url()' http://localhost:9222/eval
-//   curl -s http://localhost:9222/screenshot?name=admin-reports
-//   curl -s -X POST http://localhost:9222/close
-
 import { chromium } from "playwright";
 import { createServer } from "node:http";
 import { parseArgs } from "node:util";
@@ -52,8 +39,6 @@ async function ensureBrowser() {
 
 async function handleEval(body) {
   await ensureBrowser();
-  // context(justinvdm, 2026-04-14): Wrap the body in an async function that receives
-  // page, context, and browser. The agent writes Playwright code directly.
   const fn = new Function(
     "page",
     "context",
@@ -79,8 +64,6 @@ async function handleClose() {
     page = null;
   }
   if (context) {
-    // context(justinvdm, 2026-04-14): Closing the context finalizes the video file.
-    // The video path is only available after close.
     const pages = context.pages();
     if (pages.length === 0) {
       await context.close();
@@ -136,8 +119,6 @@ const server = createServer(async (req, res) => {
     } else if (url.pathname === "/close" && req.method === "POST") {
       const result = await handleClose();
       res.end(JSON.stringify(result));
-      // context(justinvdm, 2026-04-14): Shut down the server after close.
-      // The Verifier calls /close when done, and we exit cleanly.
       server.close();
       process.exit(0);
     } else if (url.pathname === "/health") {
