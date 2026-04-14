@@ -183,13 +183,24 @@ RESULT: PASS (N/N steps passed)
 
 The harness validates that the artifact includes a `RESULT:` line with PASS or FAIL and a step count. Without this sentinel-delimited block, the verification is not registered.
 
-Also emit a `PROOF_OF_WORK` block:
+Also emit a `PROOF_OF_WORK` block in this exact shape:
 
 ```
 <<KINDLING:PROOF_OF_WORK>>
-[Concrete actions taken in execution order, observations, decisions, proof files relied on]
+ACTIONS TAKEN:
+1. Started dev server with pnpm dev on port 5173
+2. Started Playwright eval server on port 9222
+3. Navigated to home page and verified heading
+...
+
+DECISIONS:
+- Decision: Used eval server for browser interaction instead of MCP tools
+- Decision: Took screenshot at each page transition for proof
+...
 <<KINDLING:END_PROOF_OF_WORK>>
 ```
+
+The harness requires both `ACTIONS TAKEN:` and `DECISIONS:` sections with numbered actions and `- Decision:` prefixed items.
 
 ## Signal Contract
 
