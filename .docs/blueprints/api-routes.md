@@ -38,6 +38,27 @@ Content-Type: application/json
 
 ---
 
+## GET /ready
+
+**Purpose**: Readiness check for orchestration and deployment systems.
+
+**Authentication**: None. Publicly accessible by design.
+
+**Method restriction**: GET only. All other methods return `405 Method Not Allowed` (enforced by rwsdk's `MethodHandlers` built-in).
+
+### Response
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"ready": true}
+```
+
+**Side effects**: None. Read-only.
+
+---
+
 ## GET /
 
 React SSR homepage. Rendered via rwsdk's `render(Document, [...])` pipeline.
