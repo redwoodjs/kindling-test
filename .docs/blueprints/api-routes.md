@@ -38,6 +38,31 @@ Content-Type: application/json
 
 ---
 
+## GET /version
+
+**Purpose**: Lightweight version probe for operational checks and diagnostics.
+
+**Authentication**: None. Publicly accessible by design.
+
+**Method restriction**: GET only. All other methods return `405 Method Not Allowed` (enforced by rwsdk's `MethodHandlers` built-in).
+
+### Response
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"version":"1.0.0"}
+```
+
+**Response invariants**:
+- Payload contains exactly one top-level field: `version`
+- `version` is always the fixed string `"1.0.0"`
+
+**Side effects**: None. Read-only.
+
+---
+
 ## GET /
 
 React SSR homepage. Rendered via rwsdk's `render(Document, [...])` pipeline.
