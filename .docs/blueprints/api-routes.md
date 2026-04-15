@@ -38,6 +38,69 @@ Content-Type: application/json
 
 ---
 
+## GET /status
+
+**Purpose**: Machine-readable status signal with request tracing, server time, uptime, and version.
+
+**Authentication**: None.
+
+**Method restriction**: GET only.
+
+### Response
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"status": "ok", "requestId": "<uuid>", "time": "<iso8601>", "uptime": 123, "version": "1.0.0"}
+```
+
+**Side effects**: None. Read-only.
+
+---
+
+## GET /ping
+
+**Purpose**: Lightweight liveness signal with a server-side timestamp.
+
+**Authentication**: None.
+
+**Method restriction**: GET only.
+
+### Response
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"pong": true, "timestamp": 1744003200000}
+```
+
+**Side effects**: None. Read-only.
+
+---
+
+## GET /greeting
+
+**Purpose**: Simple text greeting confirming the endpoint is reachable.
+
+**Authentication**: None.
+
+**Method restriction**: GET only.
+
+### Response
+
+```
+HTTP/1.1 200 OK
+Content-Type: text/plain
+
+hello world
+```
+
+**Side effects**: None. Read-only.
+
+---
+
 ## GET /
 
 React SSR homepage. Rendered via rwsdk's `render(Document, [...])` pipeline.
