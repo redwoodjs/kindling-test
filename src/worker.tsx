@@ -7,6 +7,7 @@ import { Home } from "@/app/pages/home";
 import { statusHandler } from "@/app/status";
 import { healthHandler } from "@/app/pages/health";
 import { pingHandler } from "@/lib/ping";
+import { ready2Handler } from "@/lib/ready2";
 
 export type AppContext = {};
 
@@ -19,5 +20,6 @@ export default defineApp([
   route("/status", statusHandler),
   route("/health", { get: healthHandler }),
   route("/ping", { get: pingHandler }),
+  route("/ready2", { get: ready2Handler }),
   render(Document, [route("/", Home)]),
 ]);
