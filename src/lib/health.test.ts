@@ -15,6 +15,13 @@ describe("GET /health", () => {
     assert.deepStrictEqual(body, { status: "ok" });
   });
 
+  it("does not return legacy health fields", async () => {
+    const response = healthHandler();
+    const body = (await response.json()) as Record<string, unknown>;
+    assert.strictEqual("healthy" in body, false);
+    assert.strictEqual("warning" in body, false);
+  });
+
   it("sets Content-Type to application/json", () => {
     const response = healthHandler();
     const contentType = response.headers.get("content-type") ?? "";
