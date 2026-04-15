@@ -1,7 +1,7 @@
 # RFC: Add /hello Endpoint
 
 **Date:** 2026-04-15
-**Status:** Draft
+**Status:** Implemented
 
 ---
 
@@ -73,14 +73,14 @@ The response should be serialized with `Response.json()` so the runtime sets the
 
 ## Tasks
 
-- [ ] Create the greeting handler in the shared utility layer.
-- [ ] Register the new route in the worker before the render pipeline.
-- [ ] Add unit tests covering the success response contract.
-- [ ] Run `pnpm test` to confirm the new test is picked up.
-- [ ] Run `pnpm types` to confirm the new files type-check.
-- [ ] Smoke-check locally with `pnpm dev`, then request `/hello` with GET and POST.
-- [ ] Confirm GET returns `200 OK` with the greeting JSON body and POST returns `405 Method Not Allowed`.
-- [ ] Update the API routes blueprint during finalization.
+- [x] Create the greeting handler in the shared utility layer.
+- [x] Register the new route in the worker before the render pipeline.
+- [x] Add unit tests covering the success response contract.
+- [x] Run `pnpm test` to confirm the new test is picked up.
+- [x] Run `pnpm types` to confirm the new files type-check.
+- [x] Smoke-check locally with `pnpm dev`, then request `/hello` with GET and POST.
+- [x] Confirm GET returns `200 OK` with the greeting JSON body and POST returns `405 Method Not Allowed`.
+- [x] Update the API routes blueprint during finalization.
 
 ---
 
@@ -90,3 +90,4 @@ The response should be serialized with `Response.json()` so the runtime sets the
 - The repository's method-handler convention uses lower-case verbs and relies on the router to return 405 for unregistered methods.
 - The existing test script already matches `src/**/*.test.ts`, so the hello test can live beside the handler without changing the test runner.
 - The local smoke check should use the repo's dev command, which is `pnpm dev`, so verification stays aligned with the current development workflow.
+- The route blueprint now includes the new greeting endpoint, so there are no remaining non-code follow-ups for this feature.
