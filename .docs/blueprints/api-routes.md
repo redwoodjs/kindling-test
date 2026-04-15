@@ -38,6 +38,27 @@ Content-Type: application/json
 
 ---
 
+## GET /greeting
+
+**Purpose**: Simple greeting endpoint returning a "hello world" message.
+
+**Authentication**: None. Publicly accessible by design.
+
+**Method restriction**: GET only.
+
+### Response
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"greeting": "hello world"}
+```
+
+**Implementation**: `src/lib/greeting.ts` — `greetingHandler()` function. Registered in `src/worker.tsx`.
+
+---
+
 ## GET /
 
 React SSR homepage. Rendered via rwsdk's `render(Document, [...])` pipeline.
