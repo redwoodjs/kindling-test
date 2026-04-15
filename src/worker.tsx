@@ -20,6 +20,7 @@ export default defineApp([
   route("/status", statusHandler),
   route("/health", { get: healthHandler }),
   route("/ping", { get: pingHandler }),
-  route("/sparkle", { get: sparkleHandler }),
+  // Keep the route GET-only so OPTIONS also falls through to 405 handling.
+  route("/sparkle", { get: sparkleHandler, config: { disableOptions: true } }),
   render(Document, [route("/", Home)]),
 ]);
