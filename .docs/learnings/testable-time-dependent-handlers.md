@@ -99,4 +99,4 @@ Any handler that reads the current time (or any other ambient value) to branch o
 
 ## Context
 
-Introduced in the `/health` endpoint implementation. See `src/app/pages/health.ts` for the concrete example. The mutable-object export and configurable threshold were added in a follow-up fix pass to address PR review comments.
+This pattern is useful for any handler that branches on elapsed time or other ambient state. It was originally explored while the health endpoint used uptime-based warnings, but the current health route is intentionally static.

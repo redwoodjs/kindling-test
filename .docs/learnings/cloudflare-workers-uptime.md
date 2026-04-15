@@ -25,4 +25,4 @@ This is idiomatic for the Workers runtime and correctly captures when the curren
 
 ## Context
 
-Discovered during implementation of the `/health` endpoint (see `.docs/rfcs/health-endpoint.md`). The 24-hour uptime warning is measured using this pattern.
+This is the correct way to measure instance age in Cloudflare Workers whenever a route genuinely needs uptime. The current health endpoint no longer uses an uptime warning, but any future time-based handler should use this pattern.
