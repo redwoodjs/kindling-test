@@ -1,3 +1,3 @@
-export function greet(): string {
-  return "hello world"
+export function greet(): Response {
+  return Response.json({ greeting: "hello world" })
 }
