@@ -6,7 +6,8 @@ import { setCommonHeaders } from "@/app/headers";
 import { Home } from "@/app/pages/home";
 import { statusHandler } from "@/app/status";
 import { healthHandler } from "@/app/pages/health";
-import { pingHandler } from "@/lib/ping";
+import { pingHandler } from "@/lib/ping"
+import { waveHandler } from "@/lib/wave";
 
 export type AppContext = {};
 
@@ -19,5 +20,6 @@ export default defineApp([
   route("/status", statusHandler),
   route("/health", { get: healthHandler }),
   route("/ping", { get: pingHandler }),
+  route("/wave", { get: waveHandler }),
   render(Document, [route("/", Home)]),
 ]);
