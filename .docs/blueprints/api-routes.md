@@ -38,6 +38,27 @@ Content-Type: application/json
 
 ---
 
+## GET /hello
+
+**Purpose**: Hello world greeting. Minimal smoke-test endpoint confirming the Worker is reachable and routing is functional.
+
+**Authentication**: None. Publicly accessible by design.
+
+**Method restriction**: GET only. All other methods return `405 Method Not Allowed` (enforced by rwsdk's `MethodHandlers` built-in).
+
+### Response
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"message": "Hello, World!"}
+```
+
+**Side effects**: None. Read-only. Stateless.
+
+---
+
 ## GET /
 
 React SSR homepage. Rendered via rwsdk's `render(Document, [...])` pipeline.
