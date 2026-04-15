@@ -27,6 +27,22 @@ Add Hello World Endpoint
 
 
 
+
+
+
+- [2026-04-15T21:46:30.150Z] [harness] The Developer has revised the RFC to address the review feedback. Dispatching the Reviewer again for phase 3 of 8 to confirm the smoke-check is reproducible and the docs task is now explicit.
+- [2026-04-15T21:46:15.127Z] [developer] Addressed review feedback:
+
+> The smoke-check step is too vague. It needs a concrete local command and explicit expected outcomes for the successful and rejected requests, otherwise the check is not reproducible and can be run against the wrong local service.
+
+I updated the RFC to name the repo's local development command and to spell out the expected results for both the successful request and the rejected method case. The verification section now makes the local check reproducible instead of implying the steps.
+
+---
+
+> If route documentation is meant to be updated, make that an explicit task instead of a passing note. As written, it is easy to miss and the scope of finalization is ambiguous.
+
+I made the route documentation update an explicit finalization task in the RFC. That keeps the scope visible and avoids burying an expected deliverable in a note.
+- [2026-04-15T21:46:13.517Z] [harness] Auditor: skipped
 - [2026-04-15T21:44:54.076Z] [harness] The RFC was reviewed and needs revision. Re-dispatching the Developer to phase 2 to tighten the smoke-check command and make the documentation update explicit before we move on.
 - [2026-04-15T21:44:33.340Z] [harness] Auditor: skipped
 - [2026-04-15T21:42:55.448Z] [harness] The RFC is complete. Dispatching the Reviewer to phase 3 of 8 to verify the proposed `/hello` route, test path, and final scope before implementation starts.
