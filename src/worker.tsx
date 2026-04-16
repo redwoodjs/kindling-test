@@ -7,6 +7,7 @@ import { Home } from "@/app/pages/home";
 import { statusHandler } from "@/app/status";
 import { healthHandler } from "@/app/pages/health";
 import { pingHandler } from "@/lib/ping";
+import { sparkleHandler } from "@/lib/sparkle";
 
 export type AppContext = {};
 
@@ -19,5 +20,7 @@ export default defineApp([
   route("/status", statusHandler),
   route("/health", { get: healthHandler }),
   route("/ping", { get: pingHandler }),
+  // Keep the route GET-only so OPTIONS also falls through to 405 handling.
+  route("/sparkle", { get: sparkleHandler, config: { disableOptions: true } }),
   render(Document, [route("/", Home)]),
 ]);
