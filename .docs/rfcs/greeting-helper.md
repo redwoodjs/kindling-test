@@ -2,7 +2,7 @@
 
 **Date:** 2026-04-16
 **Author:** Developer
-**Status:** Draft
+**Status:** Implemented
 
 ---
 
@@ -68,10 +68,10 @@ The return type is the plain string `hello world`.
 
 ## Tasks
 
-- [ ] Add the new greeting helper in the shared utility layer
-- [ ] Add a unit test that verifies the exact return value
-- [ ] Run the relevant checks after implementation
-- [ ] Confirm no docs or architecture updates are needed beyond this RFC
+- [x] Add the new greeting helper in the shared utility layer
+- [x] Add a unit test that verifies the exact return value
+- [x] Run the relevant checks after implementation
+- [x] Confirm no docs or architecture updates are needed beyond this RFC
 
 ---
 
