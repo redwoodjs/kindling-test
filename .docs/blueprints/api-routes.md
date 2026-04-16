@@ -4,6 +4,27 @@ Server-side HTTP routes exposed by the Cloudflare Worker. All routes are registe
 
 ---
 
+## GET /greeting
+
+**Purpose**: Simple hello-world endpoint demonstrating the project's handler pattern.
+
+**Authentication**: None. Publicly accessible.
+
+**Method restriction**: GET only. All other methods return `405 Method Not Allowed` (enforced by rwsdk's `MethodHandlers` built-in).
+
+### Response
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"greeting": "hello world"}
+```
+
+**Side effects**: None. Pure function, no side effects.
+
+---
+
 ## GET /health
 
 **Purpose**: Liveness check for load balancers, uptime monitors, and operational dashboards.
