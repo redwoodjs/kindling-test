@@ -1,8 +1,8 @@
 {
   "id": "kindling-agent-ready",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "name": "Kindling Agent-Ready Environment",
-  "description": "Makes a devcontainer agent-ready with auth mounts and the kindling harness.",
+  "description": "Makes a devcontainer agent-ready with the kindling harness.",
   "options": {
     "version": {
       "type": "string",
@@ -10,23 +10,6 @@
       "description": "Kindling package version to install"
     }
   },
-  "mounts": [
-    {
-      "source": "${localEnv:HOME}/.claude",
-      "target": "/home/vscode/.claude",
-      "type": "bind"
-    },
-    {
-      "source": "${localEnv:HOME}/.claude.json",
-      "target": "/home/vscode/.claude.json",
-      "type": "bind"
-    },
-    {
-      "source": "${localEnv:HOME}/.codex",
-      "target": "/home/vscode/.codex",
-      "type": "bind"
-    }
-  ],
   "containerEnv": {
     "KINDLING_ENABLED": "true"
   },
