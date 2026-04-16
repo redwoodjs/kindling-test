@@ -2,7 +2,7 @@
 
 **Date**: 2026-04-16  
 **Author**: DeveloperA  
-**Status**: Draft
+**Status**: Implemented
 
 ---
 
@@ -38,13 +38,14 @@ Place the route before the `render(Document, [...])` entry so the request is res
 
 ### `[NEW]` `src/lib/hello.test.ts`
 
-Add a colocated Node test that calls `helloHandler()` directly and asserts:
+Add a colocated Node test that exercises the route through the runtime router and asserts:
 
-- HTTP status is `200`
+- HTTP status is `200` for the happy path
 - `Content-Type` includes `application/json`
 - the parsed body is exactly `{ greeting: "hello world" }`
+- a `POST` request returns `405`
 
-Because the handler is a plain function, the test stays fast and framework-agnostic. Route-level method rejection is covered by the framework contract, not by custom handler code.
+Using the runtime router keeps the test black-box and verifies the framework’s unsupported-method behavior without booting the worker entrypoint used in production.
 
 ---
 
@@ -100,8 +101,9 @@ The literal string keeps the contract explicit and prevents accidental drift to 
 
 ## Tasks
 
-- [ ] Create `src/lib/hello.ts` with a `helloHandler` that returns a JSON greeting
-- [ ] Register `route("/hello", { get: helloHandler })` in the worker before `render(...)`
-- [ ] Add `src/lib/hello.test.ts` with assertions for status, JSON content type, and body shape
-- [ ] Verify that `POST /hello` is rejected with `405` by the framework contract
-
+- [x] Create `src/lib/hello.ts` with a `helloHandler` that returns a JSON greeting
+- [x] Register `route("/hello", { get: helloHandler })` in the worker before `render(...)`
+- [x] Add `src/lib/hello.test.ts` with assertions for status, JSON content type, body shape, and method rejection
+- [x] Verify that `POST /hello` is rejected with `405` by the framework contract
+- [x] Run `npm test` and confirm the full suite passes
+- [x] Run `npm run types` and confirm the project typechecks cleanly
