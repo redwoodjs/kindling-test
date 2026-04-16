@@ -1,7 +1,7 @@
 # RFC: Add /hello Endpoint
 
 **Date:** 2026-04-15
-**Status:** Draft
+**Status:** Implemented
 
 ---
 
@@ -70,11 +70,11 @@ No new types. The response payload shape:
 
 ## Tasks
 
-- [ ] Create `src/lib/hello.ts` exporting `helloHandler`
-- [ ] Modify `src/worker.tsx` to add `import { helloHandler } from "@/lib/hello"` and register `route("/hello", { get: helloHandler })`
-- [ ] Create `src/lib/hello.test.ts` with unit tests covering: HTTP 200, correct body shape, message value, Content-Type
-- [ ] Run `pnpm test` — all tests pass
-- [ ] Run `pnpm types` — no type errors
+- [x] Create `src/lib/hello.ts` exporting `helloHandler`
+- [x] Modify `src/worker.tsx` to add `import { helloHandler } from "@/lib/hello"` and register `route("/hello", { get: helloHandler })`
+- [x] Create `src/lib/hello.test.ts` with unit tests covering: HTTP 200, correct body shape, message value, Content-Type
+- [x] Run `pnpm test` — all tests pass
+- [x] Run `pnpm types` — no type errors
 
 ---
 
@@ -91,4 +91,4 @@ The `src/lib/` directory holds pure, framework-agnostic utility modules (e.g., `
 
 **Test script coverage:** `pnpm test` runs `node --import tsx --test 'src/**/*.test.ts'`, which picks up all `*.test.ts` files under `src/`. A new `src/lib/hello.test.ts` is automatically included.
 
-**Blueprint:** `.docs/blueprints/api-routes.md` documents all API routes. It must be updated to include `GET /hello` as part of the implementation phase (not this RFC phase).
+**Blueprint:** `.docs/blueprints/api-routes.md` already documents `GET /hello`, so no additional blueprint update was needed at closeout.
