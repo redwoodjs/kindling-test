@@ -2,13 +2,13 @@
 
 **Date**: 2026-03-29
 **Author**: Developer
-**Status**: Draft
+**Status**: Accepted
 
 ---
 
 ## 2000ft View Narrative
 
-The project needs a lightweight `/status` endpoint that answers "is the server alive and what version is it?" in a machine-readable way. The response carries five fields: a `status` sentinel (always `"ok"`), a per-request UUID (`requestId`) for correlation/tracing, the current server time (UTC ISO 8601), the server uptime in whole seconds, and the application version string sourced from `package.json`.
+The project needs a lightweight `/status` endpoint that answers "is the server alive and what version is it?" in a machine-readable way. The response carries five fields: a `status` sentinel (always `"running"`), a per-request UUID (`requestId`) for correlation/tracing, the current server time (UTC ISO 8601), the server uptime in whole seconds, and the application version string sourced from `package.json`.
 
 The codebase runs as a Cloudflare Worker under the RedwoodSDK framework (`rwsdk` v1.0.4). Routes are registered via `route(path, handler | methodHandlers)` in `defineApp([...])` inside `src/worker.tsx`. A handler can return either a React Server Component or a plain `Response` object — the latter is used here since `/status` is a JSON API endpoint, not a rendered page.
 
@@ -46,7 +46,7 @@ Feature: GET /status
     Given the server is running
     When I send GET /status
     Then the response body is valid JSON
-    And the body contains a field "status" that equals "ok"
+    And the body contains a field "status" that equals "running"
     And the body contains a field "requestId" that is a valid UUID v4 string
     And the body contains a field "time" that is a string
     And the body contains a field "uptime" that is a non-negative number
@@ -91,7 +91,7 @@ Feature: GET /status
 ```typescript
 // Response payload shape
 interface StatusResponse {
-  status: string;    // Always "ok"
+  status: string;    // Always "running"
   requestId: string; // UUID v4 generated fresh on each request via crypto.randomUUID()
   time: string;      // ISO 8601 UTC — e.g. "2026-03-29T12:00:00.000Z"
   uptime: number;    // Whole seconds since module cold-start (Math.floor)
@@ -106,8 +106,8 @@ No changes to `AppContext` are required.
 ## Invariants & Constraints
 
 1. **Version read once**: `VERSION` is a module-level constant populated from a static `import` of `package.json`. It is never re-read per request.
-2. **Start time captured once**: `START_TIME = Date.now()` is evaluated when the module is first loaded (cold-start). Subsequent requests within the same isolate reuse this value.
-3. **Uptime is whole seconds**: `Math.floor((Date.now() - START_TIME) / 1000)` — fractional seconds are truncated, not rounded.
+2. **Start time captured once**: `START_TIME.value = Date.now()` is evaluated when the module is first loaded (cold-start). Exported as a mutable object so tests can override `START_TIME.value` without monkey-patching. Subsequent requests within the same isolate reuse this value.
+3. **Uptime is whole seconds**: `Math.floor((Date.now() - START_TIME.value) / 1000)` — fractional seconds are truncated, not rounded.
 4. **Time format is ISO 8601 UTC**: `new Date().toISOString()` always produces a `Z`-suffix string.
 5. **Only GET is handled**: The route uses method-based routing (`{ get: handler }`). The rwsdk framework automatically returns 405 for unregistered methods on a matched path.
 6. **Route registered before `render(...)`**: The `/status` route appears in `defineApp([...])` before the `render(Document, [...])` call so it is evaluated first and returns before any React rendering logic runs.
@@ -118,19 +118,19 @@ No changes to `AppContext` are required.
 ## Tasks
 
 ### Preparation
-- [ ] Broaden `test` script in `package.json` from `src/lib/*.test.ts` to `src/**/*.test.ts`
+- [x] Broaden `test` script in `package.json` from `src/lib/*.test.ts` to `src/**/*.test.ts` (was already correct)
 
 ### Implementation
-- [ ] Create `src/app/status.ts`:
-  - Module-level `START_TIME = Date.now()`
+- [x] Create `src/app/status.ts`:
+  - Module-level `START_TIME = { value: Date.now() }` (mutable object for testability)
   - Static import of `package.json` to extract `version` into `VERSION`
   - Export `statusHandler` as a method-handlers object `{ get: () => Response.json(payload) }`
-- [ ] Modify `src/worker.tsx`:
+- [x] Modify `src/worker.tsx`:
   - Import `statusHandler` from `@/app/status`
   - Add `route("/status", statusHandler)` to `defineApp([...])` array, before the `render(...)` entry
 
 ### Tests
-- [ ] Create `src/app/status.test.ts`:
+- [x] Create `src/app/status.test.ts`:
   - Test that the handler returns HTTP 200
   - Test that `Content-Type` is `application/json`
   - Test that the response body is parseable JSON with `time`, `uptime`, `version` fields

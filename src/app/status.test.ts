@@ -1,8 +1,6 @@
-import { describe, it, before } from "node:test"
+import { describe, it, before, beforeEach, afterEach } from "node:test"
 import assert from "node:assert"
-import { statusHandler } from "./status.js"
-
-const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
+import { statusHandler, START_TIME } from "./status.ts"
 
 describe("GET /status", () => {
   let response: Response
@@ -66,10 +64,10 @@ describe("GET /status", () => {
     )
   })
 
-  it("status field equals \"ok\"", async () => {
+  it('status field equals "running"', async () => {
     const res = statusHandler.get()
     const body = (await res.json()) as Record<string, unknown>
-    assert.strictEqual(body.status, "ok", `status must be "ok", got "${body.status}"`)
+    assert.strictEqual(body.status, "running", `status must be "running", got "${body.status}"`)
   })
 
   it("time is a string that parses as a valid ISO 8601 UTC date", async () => {
@@ -104,16 +102,33 @@ describe("GET /status", () => {
     assert.ok((body.uptime as number) >= 0, "uptime must be non-negative")
   })
 
-  it("uptime grows between sequential requests separated by ~1 second", async () => {
-    const res1 = statusHandler.get()
-    const body1 = (await res1.json()) as Record<string, unknown>
-    await sleep(1100)
-    const res2 = statusHandler.get()
-    const body2 = (await res2.json()) as Record<string, unknown>
-    assert.ok(
-      (body2.uptime as number) > (body1.uptime as number),
-      `Second uptime (${body2.uptime}) must be greater than first (${body1.uptime})`,
-    )
+  describe("uptime grows as the module ages", () => {
+    let savedStartTime: number
+
+    beforeEach(() => {
+      savedStartTime = START_TIME.value
+    })
+
+    afterEach(() => {
+      START_TIME.value = savedStartTime
+    })
+
+    it("uptime is greater when the module started further in the past", async () => {
+      // Simulate the module having run for 5 seconds
+      START_TIME.value = Date.now() - 5_000
+      const res1 = statusHandler.get()
+      const body1 = (await res1.json()) as Record<string, unknown>
+
+      // Simulate the module having run for 10 seconds (i.e., more time has elapsed)
+      START_TIME.value = Date.now() - 10_000
+      const res2 = statusHandler.get()
+      const body2 = (await res2.json()) as Record<string, unknown>
+
+      assert.ok(
+        (body2.uptime as number) > (body1.uptime as number),
+        `Uptime at ~10s (${body2.uptime}) must be greater than at ~5s (${body1.uptime})`,
+      )
+    })
   })
 
   it("version is a non-empty string", async () => {
