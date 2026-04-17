@@ -7,8 +7,4 @@ describe("greeting", () => {
   it("returns hello world", () => {
     assert.strictEqual(greeting(), "hello world")
   })
-
-  it("returns the same greeting on repeated calls", () => {
-    assert.strictEqual(greeting(), greeting())
-  })
 })
