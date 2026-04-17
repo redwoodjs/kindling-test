@@ -1,0 +1,23 @@
+{
+  "defaultPresets": [],
+  "presets": {},
+  "llm": {
+    "defaultTransport": "codex",
+    "reasoningEffort": "low",
+    "models": {
+      "codex": {
+        "fast": "gpt-5.4-mini",
+        "default": "gpt-5.4-mini",
+        "strong": "gpt-5.4-mini"
+      }
+    }
+  },
+  "verification": {
+    "proofPublisher": {
+      "transport": "r2",
+      "bucket": "kindling-releases",
+      "prefix": "ephemeral/redwoodjs/kindling-test/artifacts/verification",
+      "publicBaseUrl": "https://pub-3f84847d768549c8910791bddfb16cef.r2.dev"
+    }
+  }
+}
