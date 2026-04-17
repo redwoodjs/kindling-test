@@ -7,6 +7,12 @@ describe("greeting", () => {
     assert.strictEqual(greeting(), "hello world")
   })
 
+  it("returns the same greeting on repeated calls", () => {
+    const first = greeting()
+    const second = greeting()
+    assert.strictEqual(first, second)
+  })
+
   it("returns a lowercase plain string without extra whitespace", () => {
     const value = greeting()
     assert.strictEqual(typeof value, "string")
