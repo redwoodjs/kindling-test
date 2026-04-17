@@ -1,0 +1,34 @@
+{
+  "defaultPresets": [],
+  "presets": {},
+  "llm": {
+    "defaultTransport": "codex",
+    "reasoningEffort": "low",
+    "models": {
+      "codex": {
+        "fast": "gpt-5.4-mini",
+        "default": "gpt-5.4-mini",
+        "strong": "gpt-5.4-mini"
+      }
+    }
+  },
+  "verification": {
+    "uiMcpServers": {
+      "playwright": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@playwright/mcp@latest",
+          "--headless",
+          "--caps",
+          "vision",
+          "--no-sandbox"
+        ]
+      }
+    },
+    "proofPublisher": {
+      "transport": "github-branch",
+      "branch": "kindling-verification-proofs"
+    }
+  }
+}
