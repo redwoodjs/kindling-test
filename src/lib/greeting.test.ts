@@ -8,7 +8,7 @@ describe("GET /greeting", () => {
     assert.strictEqual(response.status, 200)
   })
 
-  it('returns greeting: "hello world" in the body', async () => {
+  it("returns greeting: 'hello world' in the body", async () => {
     const response = greetingHandler()
     const body = (await response.json()) as { greeting: string }
     assert.strictEqual(body.greeting, "hello world")
