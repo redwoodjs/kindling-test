@@ -1,7 +1,7 @@
 # RFC: Add Greeting Function
 
 **Date**: 2026-04-17
-**Status**: Planned
+**Status**: Implemented
 
 ---
 
@@ -45,8 +45,8 @@ No new types are needed. The public contract is a zero-argument function that re
 
 - [x] Confirm the repository already contains a greeting helper and test covering the requested behavior
 - [x] Document the intended minimal contract in this RFC
-- [ ] Make code changes only if the implementation drifts from the contract
-- [ ] Run the relevant tests and type checks once implementation work is needed
+- [x] Make code changes only if the implementation drifts from the contract
+- [x] Run the relevant tests and type checks once implementation work is needed
 
 ## Relevant Learnings & Decisions
 
