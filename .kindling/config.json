@@ -1,0 +1,8 @@
+{
+  "defaultPresets": [],
+  "presets": {},
+  "turbo": true,
+  "llm": {
+    "defaultTransport": "claude"
+  }
+}
