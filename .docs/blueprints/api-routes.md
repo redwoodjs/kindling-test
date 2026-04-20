@@ -38,6 +38,29 @@ Content-Type: application/json
 
 ---
 
+## GET /greeting
+
+**Purpose**: Simple JSON endpoint returning a static greeting payload. Used as a minimal integration target for smoke tests.
+
+**Authentication**: None. Publicly accessible by design.
+
+**Method restriction**: GET only. All other methods return `405 Method Not Allowed`.
+
+### Response
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"greeting": "hello world"}
+```
+
+**Implementation**: `src/lib/greeting.ts` — exports `greetingHandler()` which returns `Response.json({ greeting: "hello world" })`. Registered in `src/worker.tsx` as `route("/greeting", { get: greetingHandler })` before the `render(...)` call.
+
+**Side effects**: None. Deterministic and read-only.
+
+---
+
 ## GET /
 
 React SSR homepage. Rendered via rwsdk's `render(Document, [...])` pipeline.
