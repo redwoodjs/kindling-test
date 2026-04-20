@@ -4,6 +4,27 @@ Server-side HTTP routes exposed by the Cloudflare Worker. All routes are registe
 
 ---
 
+## GET /greeting
+
+**Purpose**: Simple greeting endpoint returning "hello world".
+
+**Authentication**: None. Publicly accessible by design.
+
+**Method restriction**: GET only.
+
+### Response
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"greeting": "hello world"}
+```
+
+**Implementation**: `src/lib/greeting.ts` — returns `Response.json({ greeting: "hello world" })`.
+
+---
+
 ## GET /health
 
 **Purpose**: Liveness check for load balancers, uptime monitors, and operational dashboards.
