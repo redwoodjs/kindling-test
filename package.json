@@ -20,7 +20,8 @@
     "generate": "rw-scripts ensure-env && wrangler types --include-runtime false",
     "check": "npm run generate && npm run types",
     "types": "tsc",
-    "test": "node --import tsx --test 'src/**/*.test.ts'"
+    "test": "node --import tsx --test 'src/**/*.test.ts'",
+    "smoke-greet": "node -e \"console.log(\\\"kindling-smoke-verify: hello from CLI script\\\")\""
   },
   "dependencies": {
     "react": "19.2.4",
