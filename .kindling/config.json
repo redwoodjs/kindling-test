@@ -1,0 +1,15 @@
+{
+  "defaultPresets": [],
+  "presets": {},
+  "llm": {
+    "defaultTransport": "claude"
+  },
+  "verification": {
+    "proofPublisher": {
+      "transport": "r2",
+      "bucket": "kindling-releases",
+      "prefix": "ephemeral/redwoodjs/kindling-test/artifacts/verification",
+      "publicBaseUrl": "https://pub-3f84847d768549c8910791bddfb16cef.r2.dev"
+    }
+  }
+}
