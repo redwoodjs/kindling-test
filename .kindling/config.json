@@ -1,0 +1,16 @@
+{
+  "defaultPresets": [],
+  "presets": {},
+  "turbo": false,
+  "llm": {
+    "defaultTransport": "codex",
+    "reasoningEffort": "low",
+    "models": {
+      "codex": {
+        "fast": "gpt-5.4-mini",
+        "default": "gpt-5.4-mini",
+        "strong": "gpt-5.4-mini"
+      }
+    }
+  }
+}
