@@ -8,16 +8,14 @@ describe("GET /greeting", () => {
     assert.strictEqual(response.status, 200)
   })
 
-  it("returns hello world in the body", async () => {
+  it("returns hello world message in the body", async () => {
     const response = greetingHandler()
-    assert.strictEqual(await response.text(), "hello world")
+    const body = (await response.json()) as { message: string }
+    assert.strictEqual(body.message, "hello world")
   })
 
-  it("sets Content-Type to plain text", () => {
+  it("sets Content-Type to application/json", () => {
     const response = greetingHandler()
-    assert.strictEqual(
-      response.headers.get("content-type"),
-      "text/plain; charset=utf-8",
-    )
+    assert.ok(response.headers.get("content-type")?.includes("application/json"))
   })
 })
