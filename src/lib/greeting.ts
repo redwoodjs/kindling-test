@@ -1,3 +1,7 @@
 export function greet(): string {
-  return "hello world"
+  return "Hello, World!";
+}
+
+export function greetingHandler(): Response {
+  return Response.json({ message: greet() });
 }

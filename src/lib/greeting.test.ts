@@ -3,7 +3,7 @@ import assert from "node:assert"
 import { greet } from "./greeting.ts"
 
 describe("greet", () => {
-  it("returns 'hello world'", () => {
-    assert.strictEqual(greet(), "hello world")
+  it("returns 'Hello, World!'", () => {
+    assert.strictEqual(greet(), "Hello, World!")
   })
 })
