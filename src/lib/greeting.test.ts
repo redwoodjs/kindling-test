@@ -1,9 +1,7 @@
-import { describe, it } from "node:test"
+import { test } from "node:test"
 import assert from "node:assert"
-import greeting from "./greeting"
+import { greeting } from "./greeting.ts"
 
-describe("greeting", () => {
-  it("returns the literal greeting", () => {
-    assert.strictEqual(greeting(), "hello world")
-  })
+test("greeting returns hello world", () => {
+  assert.strictEqual(greeting(), "hello world")
 })

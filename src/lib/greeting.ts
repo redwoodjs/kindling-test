@@ -1,3 +1,3 @@
-export default function greeting(): string {
+export function greeting(): string {
   return "hello world"
 }
