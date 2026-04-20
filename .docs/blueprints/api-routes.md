@@ -38,6 +38,25 @@ Content-Type: application/json
 
 ---
 
+## GET /greeting
+
+**Purpose**: Simple greeting endpoint returning a plain-text "hello world" response.
+
+**Authentication**: None. Publicly accessible by design.
+
+**Method restriction**: GET only. All other methods return `405 Method Not Allowed`.
+
+### Response
+
+```
+HTTP/1.1 200 OK
+Content-Type: text/plain
+
+hello world
+```
+
+---
+
 ## GET /
 
 React SSR homepage. Rendered via rwsdk's `render(Document, [...])` pipeline.
