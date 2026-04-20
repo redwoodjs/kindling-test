@@ -1,3 +1,1 @@
-export function greeting(): string {
-  return "hello world"
-}
+export const greeting = (): string => "hello world"
