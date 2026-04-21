@@ -1,0 +1,23 @@
+{
+  "defaultPresets": [],
+  "presets": {},
+  "llm": {
+    "defaultTransport": "kimi",
+    "reasoningEffort": "low",
+    "models": {
+      "kimi": {
+        "fast": "kimi-k2.5",
+        "default": "kimi-k2.5",
+        "strong": "kimi-k2.6"
+      }
+    }
+  },
+  "verification": {
+    "proofPublisher": {
+      "transport": "r2",
+      "bucket": "kindling-releases",
+      "prefix": "ephemeral/redwoodjs/kindling-test/artifacts/verification",
+      "publicBaseUrl": "https://pub-3f84847d768549c8910791bddfb16cef.r2.dev"
+    }
+  }
+}
