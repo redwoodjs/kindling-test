@@ -8,3 +8,6 @@
 12:31  The Developer found three handler patterns in the codebase — simple functions, factory-with-default exports, and inline method-handlers — and recommends the simple `/ping`-like pattern for the greeting function: a plain function in `src/lib/greeting.ts`, a co-located test, and registration before `render()` in `src/worker.tsx`.
        **Taking stock:** The priming is complete and the implementation path is clear. No blockers surfaced.
        **Next:** Handing off to the developer to build the greeting handler, its test, and wire it into the router.
+12:33  The Developer implemented the greeting handler, added three passing tests, and wired the route into the worker — all 37 tests pass and TypeScript type-check is clean. The commits show the handler, test file, and route registration all landed.
+       **Taking stock:** Implementation is complete and locally verified. No regressions surfaced. We're on track to finish within budget.
+       **Next:** Sending the Developer to assess whether any `.docs/` artifacts need updating to reflect the new endpoint.
