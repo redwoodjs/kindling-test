@@ -6,3 +6,6 @@
 12:57  Plan (0/4 phases)\n  [ ] 1. Priming\n  [ ] 2. Implementation\n  [ ] 3. Knowledge Extraction\n  [ ] 4. CI Verification
 12:57  The brief asks for a simple greeting function returning hello world in a RedwoodSDK project — a small, well-understood change with no ambiguity.
        **Next:** Sending the developer to prime on existing conventions and handler patterns before writing any code.
+12:57  The developer surveyed the codebase and found that API handlers follow a simple extracted-function pattern (like `src/lib/ping.ts`), routes are registered in `src/worker.tsx` before the React SSR pipeline, and tests use `node:test` with `.ts` extension imports. They also spotted an existing bug where `src/app/status.test.ts` imports `.js` instead of `.ts`. The priming is complete and the implementation path is clear.
+       **Taking stock:** The conventions are well understood — a simple handler in `src/lib/greeting.ts`, a matching test, and route registration in `src/worker.tsx` is the right shape. No surprises.
+       **Next:** Moving to implementation — creating the greeting handler, its test, and wiring the route.
