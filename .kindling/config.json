@@ -1,0 +1,9 @@
+{
+  "defaultPresets": [
+    "kimi"
+  ],
+  "llm": {
+    "defaultTransport": "kimi",
+    "reasoningEffort": "low"
+  }
+}
