@@ -11,3 +11,5 @@
 11:45  The developer created the greeting handler, registered the GET route before the React SSR pipeline, added three tests following the ping pattern, and ran the full suite — all 37 tests passed with zero failures.
        **Taking stock:** The implementation is complete and green. The only remaining work is a quick check on whether the docs corpus needs any updates for this small addition.
        **Next:** Sending the developer to assess whether `.docs/blueprints/` or `.docs/learnings/` need updating, then we'll wrap up.
+11:47  Task resumed
+11:47  Understanding your codebase so agents have architectural context...
