@@ -19,3 +19,6 @@
 19:19  The Developer created the greeting utility and its test in `src/lib/`, and the full test suite passed with 35 tests including the new one.
        **Taking stock:** The implementation is clean, committed, and verified by tests. This is a trivial pure function, so any docs update will likely be minimal or unnecessary.
        **Next:** Running the knowledge extraction phase to check if project documentation should reflect this addition.
+19:22  The developer discovered that a greeting utility and its test already exist in the codebase, but the function is not wired to any API route in the worker.
+       **Taking stock:** The actual work is narrower than expected — we just need to expose the existing utility as an endpoint rather than writing the function from scratch.
+       **Next:** Sending the developer to wire up the greeting endpoint and add a handler test.
