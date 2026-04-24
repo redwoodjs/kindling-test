@@ -23,3 +23,6 @@
        **Taking stock:** The actual work is narrower than expected — we just need to expose the existing utility as an endpoint rather than writing the function from scratch.
        **Next:** Sending the developer to wire up the greeting endpoint and add a handler test.
 19:23  Task stopped -- could not proceed
+19:27  The developer wired up the existing greeting utility as a JSON API endpoint, added handler tests, and registered the route before the React SSR pipeline — all 38 tests pass including the 3 new ones.
+       **Taking stock:** The implementation is clean and committed. No unexpected issues surfaced.
+       **Next:** Handing off to the developer for knowledge extraction to check if any docs need updating.
