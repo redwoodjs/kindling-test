@@ -1,0 +1,10 @@
+{
+  "defaultPresets": [
+    "kimi-cheapest"
+  ],
+  "presets": {},
+  "llm": {
+    "defaultTransport": "kimi",
+    "reasoningEffort": "low"
+  }
+}
