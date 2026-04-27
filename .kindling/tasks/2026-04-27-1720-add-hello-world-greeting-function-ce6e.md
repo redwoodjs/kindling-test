@@ -7,3 +7,6 @@
 15:24  The brief asks for a simple greeting function returning hello world, which is a narrow, well-understood addition that fits the fast protocol perfectly.
        **Taking stock:** This is a single-agent, no-gate task. The existing project patterns in `src/lib/` give the developer a clear template to follow.
        **Next:** Sending the developer to prime on existing handler and test patterns before writing any code.
+15:25  The developer finished priming and identified the exact patterns to follow: pure handlers live in `src/lib/`, tests use `node:test` with `.ts` extensions and direct invocation, and non-React routes are registered before `render()` in `src/worker.tsx` with lowercase method keys. A worklog was committed.
+       **Taking stock:** The developer has a clear plan that matches existing conventions. No surprises surfaced.
+       **Next:** Moving straight into implementation — the developer will create the greeting handler, its test, and wire up the route.
