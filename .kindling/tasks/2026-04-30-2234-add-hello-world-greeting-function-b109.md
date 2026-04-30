@@ -9,3 +9,6 @@
 20:37  The Developer reports all three phases complete — the greeting function was added in `src/lib/greeting.ts` with a co-located test, all 35 tests pass, and the commits are already on the branch. The previous cycle emitted DONE + PR + AWAIT_CI, so the task is now in CI-polling hold.
        **Taking stock:** Work is done and committed. The harness is managing the CI wait state. No additional dispatch is needed this cycle.
        **Next:** No action — waiting for CI results to arrive.
+20:37  The Developer confirms all work is done — the greeting function is committed and the harness is polling CI. The task is in hold waiting for CI results to arrive.
+       **Taking stock:** No action needed this cycle. The CI-polling state is managed by the harness. When CI completes, the harness will wake the Orchestrator with the results.
+       **Next:** No action — continuing to wait for CI.
