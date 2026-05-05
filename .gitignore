@@ -67,3 +67,5 @@ coverage
 .wrangler
 .devcontainer/kindling/
 .kindling/board
+.kindling/tasks/
+.kindling/do/
