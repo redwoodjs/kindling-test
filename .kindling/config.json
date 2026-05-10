@@ -2,51 +2,30 @@
   "defaultPresets": [
     "noctx"
   ],
-  "daemon": {
-    "tier": "max5x",
-    "port": 51729,
-    "holdThresholdPct": 90,
-    "resumeThresholdPct": 80,
-    "supervisorPollIntervalMs": 120000,
-    "projects": [
-      "~/rw/sdk",
-      "~/rw/kindling",
-      "~/rw/goprzm/przm",
-      "~/rw/kindling-test",
-      "~/rw/kindling-dogfood-peterp-site"
-    ]
+  "presets": {
+    "noctx": {
+      "transport": "noctx",
+      "llm": {
+        "defaultTransport": "noctx"
+      }
+    }
   },
-  "presets": {},
   "noctx": {
     "orchestrator": {
       "type": "codex",
       "model": "gpt-5.4-mini",
-      "thinkingLevel": "medium"
+      "thinkingLevel": "off"
     },
     "writer": {
       "type": "codex",
       "model": "gpt-5.4-mini",
-      "thinkingLevel": "medium"
+      "thinkingLevel": "off"
     },
     "sheller": {
       "type": "codex",
-      "model": "gpt-5.4-mini",
-      "thinkingLevel": "low"
+      "model": "gpt-5.4-nano",
+      "thinkingLevel": "off"
     },
     "maxReplans": 3
-  },
-  "forwardEnv": [
-    "KINDLING_PROOF_R2_ACCESS_KEY_ID",
-    "KINDLING_PROOF_R2_SECRET_ACCESS_KEY",
-    "KINDLING_PROOF_R2_ACCOUNT_ID",
-    "CHEAPEST_INFERENCE_API_KEY"
-  ],
-  "verification": {
-    "proofPublisher": {
-      "transport": "r2",
-      "bucket": "kindling-proof",
-      "prefix": "verification",
-      "publicBaseUrl": "https://pub-579f92823f2d4d3f8cae58eae2630f2e.r2.dev"
-    }
   }
 }
