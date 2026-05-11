@@ -1,16 +1,9 @@
 {
   "defaultPresets": [
-    "noctx"
+    "kimi+codex"
   ],
-  "presets": {
-    "noctx": {
-      "transport": "noctx",
-      "llm": {
-        "defaultTransport": "noctx"
-      }
-    }
-  },
-  "noctx": {
+  "subharness": {
+    "type": "noctx",
     "orchestrator": {
       "type": "codex",
       "model": "gpt-5.4-mini",
