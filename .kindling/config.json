@@ -1,0 +1,31 @@
+{
+  "defaultPresets": [
+    "noctx"
+  ],
+  "presets": {
+    "noctx": {
+      "transport": "noctx",
+      "llm": {
+        "defaultTransport": "noctx"
+      }
+    }
+  },
+  "noctx": {
+    "orchestrator": {
+      "type": "codex",
+      "model": "gpt-5.4-mini",
+      "thinkingLevel": "off"
+    },
+    "writer": {
+      "type": "codex",
+      "model": "gpt-5.4-mini",
+      "thinkingLevel": "off"
+    },
+    "sheller": {
+      "type": "codex",
+      "model": "gpt-5.4-nano",
+      "thinkingLevel": "off"
+    },
+    "maxReplans": 3
+  }
+}
