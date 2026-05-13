@@ -1,3 +1,4 @@
+<!-- One-line comment -->
 # Hello! Welcome to this repository.
 <!-- Added by writer -->
 <!-- Hello! -->
