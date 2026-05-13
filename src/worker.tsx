@@ -19,5 +19,6 @@ export default defineApp([
   route("/status", statusHandler),
   route("/health", { get: healthHandler }),
   route("/ping", { get: pingHandler }),
+  // L4 marker
   render(Document, [route("/", Home)]),
 ]);
