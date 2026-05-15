@@ -30,8 +30,9 @@ export function createHealthHandler(
     // Emit a recycling advisory once the isolate has been alive longer than
     // the configured threshold. The healthy flag remains true regardless —
     // the warning is informational only.
+    const uptimeMs = getUptimeMs();
     const body: HealthResponse =
-      getUptimeMs() > thresholdMs
+      uptimeMs > thresholdMs
         ? { healthy: true, warning: "uptime exceeds 24h, consider recycling" }
         : { healthy: true };
 
