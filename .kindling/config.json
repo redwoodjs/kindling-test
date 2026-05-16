@@ -2,23 +2,16 @@
   "defaultPresets": [
     "kimi+codex"
   ],
-  "subharness": {
-    "type": "noctx",
+  "noctx": {
+    "maxReplans": 3,
     "orchestrator": {
-      "type": "codex",
-      "model": "gpt-5.4-mini",
       "thinkingLevel": "off"
     },
     "writer": {
-      "type": "codex",
-      "model": "gpt-5.4-mini",
       "thinkingLevel": "off"
     },
     "sheller": {
-      "type": "codex",
-      "model": "gpt-5.4-nano",
       "thinkingLevel": "off"
-    },
-    "maxReplans": 3
+    }
   }
 }
