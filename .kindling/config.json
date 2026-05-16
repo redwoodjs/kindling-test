@@ -1,6 +1,6 @@
 {
   "defaultPresets": [
-    "kimi+codex"
+    "kimi+nano"
   ],
   "noctx": {
     "maxReplans": 3,
