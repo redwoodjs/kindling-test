@@ -2,6 +2,7 @@ import { render, route } from "rwsdk/router";
 import { defineApp } from "rwsdk/worker";
 
 import { Document } from "@/app/document";
+import { helloHandler } from "@/app/hello";
 import { setCommonHeaders } from "@/app/headers";
 import { Home } from "@/app/pages/home";
 import { statusHandler } from "@/app/status";
@@ -17,6 +18,7 @@ export default defineApp([
     ctx;
   },
   route("/status", statusHandler),
+  route("/hello", helloHandler),
   route("/health", { get: healthHandler }),
   route("/ping", { get: pingHandler }),
   render(Document, [route("/", Home)]),
