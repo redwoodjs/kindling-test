@@ -1,0 +1,11 @@
+{
+  "jobId": "1779388916861-myc9bi",
+  "pid": 88486,
+  "command": "true && echo 'noop'",
+  "cwd": "/Users/justin/.kindling/run/worktrees/integration-l4-1779388733674",
+  "startedAt": "2026-05-21T18:41:56.882Z",
+  "stdoutPath": "/Users/justin/.kindling/run/worktrees/integration-l4-1779388733674/.kindling/noctx-jobs/1779388916861-myc9bi.stdout.log",
+  "stderrPath": "/Users/justin/.kindling/run/worktrees/integration-l4-1779388733674/.kindling/noctx-jobs/1779388916861-myc9bi.stderr.log",
+  "statusPath": "/Users/justin/.kindling/run/worktrees/integration-l4-1779388733674/.kindling/noctx-jobs/1779388916861-myc9bi.status",
+  "scriptPath": "/Users/justin/.kindling/run/worktrees/integration-l4-1779388733674/.kindling/noctx-jobs/1779388916861-myc9bi.sh"
+}
