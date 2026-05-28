@@ -1,0 +1,17 @@
+{
+  "defaultPresets": [
+    "kimi+nano"
+  ],
+  "noctx": {
+    "maxReplans": 3,
+    "orchestrator": {
+      "thinkingLevel": "off"
+    },
+    "writer": {
+      "thinkingLevel": "off"
+    },
+    "sheller": {
+      "thinkingLevel": "off"
+    }
+  }
+}
