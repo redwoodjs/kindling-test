@@ -1,0 +1,1 @@
+KINDLING priming artifact recorded, but no repo-backed evidence or task-specific instructions were provided in the prompt context. No edits to project files were requested yet.
